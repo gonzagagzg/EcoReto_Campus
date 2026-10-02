@@ -1,11 +1,13 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { In, type DeepPartial, type Repository } from 'typeorm';
 import { Gusto } from '../entities/gusto.entity';
 import { GustoUsuario } from '../entities/gusto_usuario.entity';
+import { EstadoGusto } from '../entities/gusto.entity';
 import { EstadoUsuario, type Rol, Usuario } from '../entities/usuario.entity';
 import type {
   FiltrosUsuario,
+  FiltrosGusto,
   GustoUsuarioResultado,
   ProgresoUsuario,
   UsuarioDaoInterface,
@@ -14,10 +16,23 @@ import type {
 @Injectable()
 export class UsuarioDao implements UsuarioDaoInterface {
   constructor(
-    @InjectRepository(Usuario) private readonly usuarioRepo: Repository<Usuario>,
+    @InjectRepository(Usuario)
+    private readonly usuarioRepo: Repository<Usuario>,
     @InjectRepository(Gusto) private readonly gustoRepo: Repository<Gusto>,
-    @InjectRepository(GustoUsuario) private readonly gustoUsuarioRepo: Repository<GustoUsuario>,
+    @InjectRepository(GustoUsuario)
+    private readonly gustoUsuarioRepo: Repository<GustoUsuario>,
   ) {}
+
+  async listarTopPorPuntos(rol: Rol, limite: number): Promise<Usuario[]> {
+    return this.usuarioRepo
+      .createQueryBuilder('usuario')
+      .where('usuario.rol = :rol', { rol })
+      .andWhere('usuario.estado = :estado', { estado: EstadoUsuario.Activo })
+      .orderBy('usuario.historialPuntos', 'DESC')
+      .addOrderBy('usuario.nivel', 'DESC')
+      .take(limite)
+      .getMany();
+  }
 
   async crear(datos: DeepPartial<Usuario>): Promise<Usuario> {
     const usuario = this.usuarioRepo.create(datos);
@@ -37,14 +52,18 @@ export class UsuarioDao implements UsuarioDaoInterface {
   }
 
   buscarPorCorreo(correo: string): Promise<Usuario | null> {
-    return this.usuarioRepo.findOne({ where: { correo: correo.trim().toLowerCase() } });
+    return this.usuarioRepo.findOne({
+      where: { correo: correo.trim().toLowerCase() },
+    });
   }
 
   buscarPorCorreoConContrasena(correo: string): Promise<Usuario | null> {
     return this.usuarioRepo
       .createQueryBuilder('usuario')
       .addSelect('usuario.contrasena')
-      .where('usuario.correo = :correo', { correo: correo.trim().toLowerCase() })
+      .where('usuario.correo = :correo', {
+        correo: correo.trim().toLowerCase(),
+      })
       .getOne();
   }
 
@@ -60,11 +79,19 @@ export class UsuarioDao implements UsuarioDaoInterface {
     return total > 0;
   }
 
-  async listar(filtros: FiltrosUsuario): Promise<{ items: Usuario[]; total: number }> {
+  async listar(
+    filtros: FiltrosUsuario,
+  ): Promise<{ items: Usuario[]; total: number }> {
     const query = this.usuarioRepo.createQueryBuilder('usuario');
 
     if (filtros.estado) {
       query.andWhere('usuario.estado = :estado', { estado: filtros.estado });
+    }
+
+    if (filtros.excluirDesactivados) {
+      query.andWhere('usuario.estado != :desactivado', {
+        desactivado: EstadoUsuario.Desactivo,
+      });
     }
 
     if (filtros.rol) {
@@ -78,14 +105,20 @@ export class UsuarioDao implements UsuarioDaoInterface {
       );
     }
 
-    query.orderBy('usuario.id_usuario', 'DESC').skip(filtros.skip ?? 0).take(filtros.take ?? 20);
+    query
+      .orderBy('usuario.id_usuario', 'DESC')
+      .skip(filtros.skip ?? 0)
+      .take(filtros.take ?? 20);
 
     const [items, total] = await query.getManyAndCount();
 
     return { items, total };
   }
 
-  async actualizar(idUsuario: number, datos: DeepPartial<Usuario>): Promise<Usuario> {
+  async actualizar(
+    idUsuario: number,
+    datos: DeepPartial<Usuario>,
+  ): Promise<Usuario> {
     const usuario = await this.buscarPorId(idUsuario);
 
     if (!usuario) {
@@ -97,7 +130,10 @@ export class UsuarioDao implements UsuarioDaoInterface {
     return this.usuarioRepo.save(usuario);
   }
 
-  async actualizarEstado(idUsuario: number, estado: EstadoUsuario): Promise<Usuario> {
+  async actualizarEstado(
+    idUsuario: number,
+    estado: EstadoUsuario,
+  ): Promise<Usuario> {
     return this.actualizar(idUsuario, { estado });
   }
 
@@ -105,7 +141,10 @@ export class UsuarioDao implements UsuarioDaoInterface {
     return this.actualizar(idUsuario, { rol });
   }
 
-  async establecerProgreso(idUsuario: number, progreso: ProgresoUsuario): Promise<void> {
+  async establecerProgreso(
+    idUsuario: number,
+    progreso: ProgresoUsuario,
+  ): Promise<void> {
     await this.usuarioRepo.update(idUsuario, {
       puntos: Math.max(0, progreso.puntos),
       retosCumplidos: Math.max(0, progreso.retosCumplidos),
@@ -113,6 +152,7 @@ export class UsuarioDao implements UsuarioDaoInterface {
     });
   }
 
+  /** Baja lógica: la cuenta pasa a 'desactivo' y sus datos quedan intactos. */
   async eliminar(idUsuario: number): Promise<boolean> {
     const usuario = await this.buscarPorId(idUsuario);
 
@@ -120,7 +160,11 @@ export class UsuarioDao implements UsuarioDaoInterface {
       return false;
     }
 
-    await this.usuarioRepo.softRemove(usuario);
+    if (usuario.estado === EstadoUsuario.Desactivo) {
+      return true;
+    }
+
+    await this.actualizarEstado(idUsuario, EstadoUsuario.Desactivo);
     return true;
   }
 
@@ -143,7 +187,9 @@ export class UsuarioDao implements UsuarioDaoInterface {
       return [];
     }
 
-    const existentes = await this.gustoRepo.find({ where: { idGusto: In(idsGustos) } });
+    const existentes = await this.gustoRepo.find({
+      where: { idGusto: In(idsGustos) },
+    });
     const registros = existentes.map((gusto) =>
       this.gustoUsuarioRepo.create({ idUsuario, idGusto: gusto.idGusto }),
     );
@@ -157,7 +203,79 @@ export class UsuarioDao implements UsuarioDaoInterface {
   }
 
   listarCatalogoGustos(): Promise<Gusto[]> {
-    return this.gustoRepo.find({ order: { nombreGusto: 'ASC' } });
+    return this.gustoRepo.find({
+      where: { estado: EstadoGusto.Activo },
+      order: { nombreGusto: 'ASC' },
+    });
+  }
+
+  /** Listado de gustos para admin con filtros y paginación. */
+  async listarGustosAdmin(
+    filtros: FiltrosGusto,
+  ): Promise<{ items: Gusto[]; total: number }> {
+    const query = this.gustoRepo.createQueryBuilder('gusto');
+
+    if (filtros.busqueda) {
+      query.andWhere('gusto.nombre_gusto ILIKE :busqueda', {
+        busqueda: `%${filtros.busqueda}%`,
+      });
+    }
+
+    if (filtros.estado) {
+      query.andWhere('gusto.estado = :estado', { estado: filtros.estado });
+    }
+
+    query
+      .orderBy('gusto.nombre_gusto', 'ASC')
+      .skip(filtros.skip ?? 0)
+      .take(filtros.take ?? 20);
+
+    const [items, total] = await query.getManyAndCount();
+
+    return { items, total };
+  }
+
+  /** Busca un gusto por ID. */
+  buscarGustoPorId(idGusto: number): Promise<Gusto | null> {
+    return this.gustoRepo.findOne({ where: { idGusto } });
+  }
+
+  /** Crea un nuevo gusto. */
+  async crearGusto(datos: DeepPartial<Gusto>): Promise<Gusto> {
+    const gusto = this.gustoRepo.create(datos);
+    return this.gustoRepo.save(gusto);
+  }
+
+  /** Actualiza un gusto existente. */
+  async actualizarGusto(
+    idGusto: number,
+    datos: DeepPartial<Gusto>,
+  ): Promise<Gusto> {
+    const gusto = await this.buscarGustoPorId(idGusto);
+
+    if (!gusto) {
+      throw new NotFoundException(`Gusto ${idGusto} no encontrado`);
+    }
+
+    Object.assign(gusto, datos);
+
+    return this.gustoRepo.save(gusto);
+  }
+
+  /** Elimina (baja lógica) un gusto. */
+  async eliminarGusto(idGusto: number): Promise<boolean> {
+    const gusto = await this.buscarGustoPorId(idGusto);
+
+    if (!gusto) {
+      return false;
+    }
+
+    if (gusto.estado === EstadoGusto.Desactivo) {
+      return true;
+    }
+
+    await this.gustoRepo.update(idGusto, { estado: EstadoGusto.Desactivo });
+    return true;
   }
 
   async contarPorEstado(): Promise<{ estado: EstadoUsuario; total: number }[]> {
@@ -168,11 +286,16 @@ export class UsuarioDao implements UsuarioDaoInterface {
       .groupBy('usuario.estado')
       .getRawMany<{ estado: EstadoUsuario; total: string }>();
 
-    return filas.map((fila) => ({ estado: fila.estado, total: Number(fila.total) }));
+    return filas.map((fila) => ({
+      estado: fila.estado,
+      total: Number(fila.total),
+    }));
   }
 
   async obtenerIdsUsuarios(): Promise<number[]> {
-    const usuarios = await this.usuarioRepo.find({ select: { idUsuario: true } });
+    const usuarios = await this.usuarioRepo.find({
+      select: { idUsuario: true },
+    });
     return usuarios.map((usuario) => usuario.idUsuario);
   }
 }

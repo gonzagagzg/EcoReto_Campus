@@ -16,6 +16,7 @@ export interface ParticipacionConReto {
   idParticipacion: number;
   idReto: number;
   idUsuario: number;
+  nombreUsuario: string;
   nombreReto: string;
   evidencia: string;
   estadoParticipacion: EstadoEvaluacion;
@@ -46,7 +47,10 @@ export class ParticipacionesDao {
   }
 
   buscarPorId(idParticipacion: number): Promise<Participacion | null> {
-    return this.participacionRepo.findOne({ where: { idParticipacion } });
+    return this.participacionRepo.findOne({
+      where: { idParticipacion },
+      relations: { retoParticipante: { reto: true } },
+    });
   }
 
   async actualizar(
@@ -104,10 +108,12 @@ export class ParticipacionesDao {
         'participante.id_retos_participantes = participacion.id_retos_participantes',
       )
       .innerJoin('participante.reto', 'reto', 'reto.id_reto = participante.id_reto')
+      .innerJoin('participacion.usuario', 'usuario')
       .select([
         'participacion.id_participacion AS "idParticipacion"',
         'reto.id_reto AS "idReto"',
         'participacion.id_usuario AS "idUsuario"',
+        "TRIM(CONCAT(usuario.nombre, ' ', usuario.apellido)) AS \"nombreUsuario\"",
         'reto.nombre_reto AS "nombreReto"',
         'participacion.imagen_evidencia AS "evidencia"',
         'participacion.estado_participacion AS "estadoParticipacion"',

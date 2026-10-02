@@ -1,7 +1,8 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { type DeepPartial, type Repository } from 'typeorm';
+import { type DeepPartial, In, type Repository } from 'typeorm';
 import { EstadoEvaluacion } from '../../participaciones/entities/participacion.entity';
+import { Usuario } from '../../usuarios/entities/usuario.entity';
 import { Soporte } from '../entities/soporte.entity';
 
 export interface FiltrosSoporte {
@@ -11,10 +12,14 @@ export interface FiltrosSoporte {
   take?: number;
 }
 
+/** Ticket listado junto al nombre de quien lo abrió (nunca exponer el usuario entero). */
+export type TicketSoporte = Soporte & { nombreUsuario: string };
+
 @Injectable()
 export class SoporteDao {
   constructor(
     @InjectRepository(Soporte) private readonly soporteRepo: Repository<Soporte>,
+    @InjectRepository(Usuario) private readonly usuarioRepo: Repository<Usuario>,
   ) {}
 
   async crear(datos: DeepPartial<Soporte>): Promise<Soporte> {
@@ -38,7 +43,7 @@ export class SoporteDao {
     return ticket;
   }
 
-  async listar(filtros: FiltrosSoporte): Promise<{ items: Soporte[]; total: number }> {
+  async listar(filtros: FiltrosSoporte): Promise<{ items: TicketSoporte[]; total: number }> {
     const query = this.soporteRepo.createQueryBuilder('soporte');
 
     if (filtros.estadoSoporte) {
@@ -56,7 +61,32 @@ export class SoporteDao {
 
     const [items, total] = await query.getManyAndCount();
 
-    return { items, total };
+    return { items: await this.conNombreDeUsuario(items), total };
+  }
+
+  /** Agrega el nombre de quien abrió el ticket sin exponer la fila completa del usuario. */
+  private async conNombreDeUsuario(items: Soporte[]): Promise<TicketSoporte[]> {
+    if (items.length === 0) {
+      return [];
+    }
+
+    const ids = [...new Set(items.map((ticket) => ticket.idUsuario))];
+    const usuarios = await this.usuarioRepo.find({
+      where: { idUsuario: In(ids) },
+      select: { idUsuario: true, nombre: true, apellido: true },
+    });
+    const nombres = new Map(
+      usuarios.map((usuario) => [
+        usuario.idUsuario,
+        `${usuario.nombre} ${usuario.apellido}`.trim(),
+      ]),
+    );
+
+    return items.map((ticket) =>
+      Object.assign(ticket, {
+        nombreUsuario: nombres.get(ticket.idUsuario) ?? `Usuario #${ticket.idUsuario}`,
+      }),
+    );
   }
 
   async atender(

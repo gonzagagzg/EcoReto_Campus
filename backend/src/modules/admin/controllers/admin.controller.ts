@@ -42,6 +42,7 @@ export class AdminController {
   }
 
   @Get('participaciones')
+  @Roles(Rol.Administrador, Rol.Supervisor)
   listarParticipaciones(@Query() query: ParticipacionQueryDto) {
     return this.adminService.listarParticipaciones(query);
   }

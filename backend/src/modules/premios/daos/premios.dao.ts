@@ -1,13 +1,19 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { DataSource, type DeepPartial, type Repository } from 'typeorm';
 import { Usuario } from '../../usuarios/entities/usuario.entity';
 import { HistorialPremio } from '../entities/historial_premio.entity';
-import { Premio } from '../entities/premio.entity';
+import { EstadoPremio, Premio } from '../entities/premio.entity';
 
 export interface FiltrosPremio {
   busqueda?: string;
   puntosMaximos?: number;
+  /** El catálogo público sólo ve los premios 'activo'. */
+  incluyeDesactivados?: boolean;
   skip?: number;
   take?: number;
 }
@@ -18,7 +24,8 @@ export class PremiosDao {
     @InjectRepository(Premio) private readonly premioRepo: Repository<Premio>,
     @InjectRepository(HistorialPremio)
     private readonly historialRepo: Repository<HistorialPremio>,
-    @InjectRepository(Usuario) private readonly usuarioRepo: Repository<Usuario>,
+    @InjectRepository(Usuario)
+    private readonly usuarioRepo: Repository<Usuario>,
     private readonly dataSource: DataSource,
   ) {}
 
@@ -31,7 +38,9 @@ export class PremiosDao {
     return this.premioRepo.findOne({ where: { idPremio } });
   }
 
-  async listar(filtros: FiltrosPremio): Promise<{ items: Premio[]; total: number }> {
+  async listar(
+    filtros: FiltrosPremio,
+  ): Promise<{ items: Premio[]; total: number }> {
     const query = this.premioRepo.createQueryBuilder('premio');
 
     if (filtros.busqueda) {
@@ -47,6 +56,12 @@ export class PremiosDao {
       });
     }
 
+    if (!filtros.incluyeDesactivados) {
+      query.andWhere('premio.estado = :estadoActivo', {
+        estadoActivo: EstadoPremio.Activo,
+      });
+    }
+
     query
       .orderBy('premio.puntos_premio', 'ASC')
       .skip(filtros.skip ?? 0)
@@ -57,7 +72,10 @@ export class PremiosDao {
     return { items, total };
   }
 
-  async actualizar(idPremio: number, datos: DeepPartial<Premio>): Promise<Premio> {
+  async actualizar(
+    idPremio: number,
+    datos: DeepPartial<Premio>,
+  ): Promise<Premio> {
     const premio = await this.buscarPorId(idPremio);
 
     if (!premio) {
@@ -69,6 +87,7 @@ export class PremiosDao {
     return this.premioRepo.save(premio);
   }
 
+  /** Baja lógica: sale del catálogo pero su historial de canjes se conserva. */
   async eliminar(idPremio: number): Promise<boolean> {
     const premio = await this.buscarPorId(idPremio);
 
@@ -76,7 +95,11 @@ export class PremiosDao {
       return false;
     }
 
-    await this.premioRepo.softRemove(premio);
+    if (premio.estado === EstadoPremio.Desactivo) {
+      return true;
+    }
+
+    await this.premioRepo.update(idPremio, { estado: EstadoPremio.Desactivo });
     return true;
   }
 
@@ -86,6 +109,10 @@ export class PremiosDao {
 
       if (!premio) {
         throw new NotFoundException(`Premio ${idPremio} no encontrado`);
+      }
+
+      if (premio.estado !== EstadoPremio.Activo) {
+        throw new BadRequestException('Este premio ya no esta disponible');
       }
 
       const usuario = await manager.findOne(Usuario, { where: { idUsuario } });
@@ -107,7 +134,12 @@ export class PremiosDao {
       });
 
       await manager.save(HistorialPremio, historial);
-      await manager.decrement(Usuario, { idUsuario }, 'puntos', premio.puntosPremio);
+      await manager.decrement(
+        Usuario,
+        { idUsuario },
+        'puntos',
+        premio.puntosPremio,
+      );
 
       return historial;
     });
@@ -125,7 +157,11 @@ export class PremiosDao {
   async puntosCanjeados(idUsuario: number): Promise<number> {
     const resultado = await this.historialRepo
       .createQueryBuilder('historial')
-      .innerJoin('historial.premio', 'premio', 'premio.id_premio = historial.id_premio')
+      .innerJoin(
+        'historial.premio',
+        'premio',
+        'premio.id_premio = historial.id_premio',
+      )
       .select('COALESCE(SUM(premio.puntos_premio), 0)', 'total')
       .where('historial.id_usuario = :idUsuario', { idUsuario })
       .getRawOne<{ total: string }>();

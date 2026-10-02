@@ -1,7 +1,6 @@
 import {
   Check,
   Column,
-  DeleteDateColumn,
   Entity,
   OneToMany,
   PrimaryGeneratedColumn,
@@ -23,6 +22,7 @@ export enum EstadoUsuario {
 
 @Entity('usuarios')
 @Check('usuarios_puntos_check', 'puntos >= 0')
+@Check('usuarios_historial_puntos_check', 'historial_puntos >= 0')
 export class Usuario {
   @PrimaryGeneratedColumn('increment', { name: 'id_usuario' })
   idUsuario!: number;
@@ -42,10 +42,20 @@ export class Usuario {
   @Column({ name: 'carrera', type: 'varchar', length: 100, nullable: true })
   carrera!: string | null;
 
-  @Column({ name: 'nivel_carrera', type: 'varchar', length: 50, nullable: true })
+  @Column({
+    name: 'nivel_carrera',
+    type: 'varchar',
+    length: 50,
+    nullable: true,
+  })
   nivelCarrera!: string | null;
 
-  @Column({ name: 'centro_estudios', type: 'varchar', length: 150, nullable: true })
+  @Column({
+    name: 'centro_estudios',
+    type: 'varchar',
+    length: 150,
+    nullable: true,
+  })
   centroEstudios!: string | null;
 
   @Column({ name: 'contrasena', type: 'varchar', length: 255, select: false })
@@ -54,10 +64,21 @@ export class Usuario {
   @Column({ name: 'cedula', type: 'varchar', length: 20, unique: true })
   cedula!: string;
 
-  @Column({ name: 'imagen_usuario', type: 'varchar', length: 255, nullable: true })
+  @Column({
+    name: 'imagen_usuario',
+    type: 'varchar',
+    length: 255,
+    nullable: true,
+  })
   imagenUsuario!: string | null;
 
-  @Column({ name: 'rol', type: 'enum', enum: Rol, enumName: 'rol_enum', default: Rol.Usuario })
+  @Column({
+    name: 'rol',
+    type: 'enum',
+    enum: Rol,
+    enumName: 'rol_enum',
+    default: Rol.Usuario,
+  })
   rol!: Rol;
 
   @Column({
@@ -72,14 +93,14 @@ export class Usuario {
   @Column({ name: 'puntos', type: 'int', default: 0 })
   puntos!: number;
 
+  @Column({ name: 'historial_puntos', type: 'int', default: 0 })
+  historialPuntos!: number;
+
   @Column({ name: 'retos_cumplidos', type: 'int', default: 0 })
   retosCumplidos!: number;
 
   @Column({ name: 'nivel', type: 'int', default: 0 })
   nivel!: number;
-
-  @DeleteDateColumn({ name: 'deleted_at', type: 'timestamp', nullable: true })
-  deletedAt!: Date | null;
 
   @OneToMany(() => GustoUsuario, (gustoUsuario) => gustoUsuario.usuario)
   gustosUsuario!: GustoUsuario[];

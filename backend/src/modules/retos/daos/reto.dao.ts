@@ -22,11 +22,15 @@ export class RetoDao implements RetoDaoInterface {
     return this.retoRepo.findOne({ where: { idReto } });
   }
 
-  async listar(filtros: FiltrosReto): Promise<{ items: Reto[]; total: number }> {
+  async listar(
+    filtros: FiltrosReto,
+  ): Promise<{ items: Reto[]; total: number }> {
     const query = this.retoRepo.createQueryBuilder('reto');
 
     if (filtros.estadoReto) {
-      query.andWhere('reto.estado_reto = :estadoReto', { estadoReto: filtros.estadoReto });
+      query.andWhere('reto.estado_reto = :estadoReto', {
+        estadoReto: filtros.estadoReto,
+      });
     } else if (filtros.soloVisibles) {
       query.andWhere('reto.estado_reto IN (:...estadosVisibles)', {
         estadosVisibles: [EstadoReto.Activo, EstadoReto.Finalizado],
@@ -34,11 +38,15 @@ export class RetoDao implements RetoDaoInterface {
     }
 
     if (filtros.dificultad) {
-      query.andWhere('reto.dificultad = :dificultad', { dificultad: filtros.dificultad });
+      query.andWhere('reto.dificultad = :dificultad', {
+        dificultad: filtros.dificultad,
+      });
     }
 
     if (filtros.categoria) {
-      query.andWhere('reto.categoria = :categoria', { categoria: filtros.categoria });
+      query.andWhere('reto.categoria = :categoria', {
+        categoria: filtros.categoria,
+      });
     }
 
     if (filtros.idUsuarioCreador) {
@@ -58,7 +66,10 @@ export class RetoDao implements RetoDaoInterface {
       query.andWhere('reto.fecha_limite > :ahora', { ahora: new Date() });
     }
 
-    query.orderBy('reto.fecha_creacion', 'DESC').skip(filtros.skip ?? 0).take(filtros.take ?? 20);
+    query
+      .orderBy('reto.fecha_creacion', 'DESC')
+      .skip(filtros.skip ?? 0)
+      .take(filtros.take ?? 20);
 
     const [items, total] = await query.getManyAndCount();
 
@@ -81,6 +92,7 @@ export class RetoDao implements RetoDaoInterface {
     return this.actualizar(idReto, { estadoReto });
   }
 
+  /** Baja lógica: sale del catálogo sin borrar sus participaciones. */
   async eliminar(idReto: number): Promise<boolean> {
     const reto = await this.buscarPorId(idReto);
 
@@ -88,12 +100,21 @@ export class RetoDao implements RetoDaoInterface {
       return false;
     }
 
-    await this.retoRepo.softRemove(reto);
+    if (reto.estadoReto === EstadoReto.Desactivado) {
+      return true;
+    }
+
+    await this.cambiarEstado(idReto, EstadoReto.Desactivado);
     return true;
   }
 
-  async registrarParticipante(idReto: number, idUsuario: number): Promise<RetoParticipante> {
-    const previas = await this.participanteRepo.count({ where: { idReto, idUsuario } });
+  async registrarParticipante(
+    idReto: number,
+    idUsuario: number,
+  ): Promise<RetoParticipante> {
+    const previas = await this.participanteRepo.count({
+      where: { idReto, idUsuario },
+    });
     const participante = this.participanteRepo.create({
       idReto,
       idUsuario,
@@ -103,7 +124,10 @@ export class RetoDao implements RetoDaoInterface {
     return this.participanteRepo.save(participante);
   }
 
-  existeParticipante(idReto: number, idUsuario: number): Promise<RetoParticipante | null> {
+  existeParticipante(
+    idReto: number,
+    idUsuario: number,
+  ): Promise<RetoParticipante | null> {
     return this.participanteRepo.findOne({ where: { idReto, idUsuario } });
   }
 
@@ -118,7 +142,9 @@ export class RetoDao implements RetoDaoInterface {
     return this.participanteRepo.count({ where: { idReto } });
   }
 
-  async contarPorEstado(): Promise<{ estadoReto: EstadoReto; total: number }[]> {
+  async contarPorEstado(): Promise<
+    { estadoReto: EstadoReto; total: number }[]
+  > {
     const filas = await this.retoRepo
       .createQueryBuilder('reto')
       .select('reto.estado_reto', 'estadoReto')
@@ -126,7 +152,10 @@ export class RetoDao implements RetoDaoInterface {
       .groupBy('reto.estado_reto')
       .getRawMany<{ estadoReto: EstadoReto; total: string }>();
 
-    return filas.map((fila) => ({ estadoReto: fila.estadoReto, total: Number(fila.total) }));
+    return filas.map((fila) => ({
+      estadoReto: fila.estadoReto,
+      total: Number(fila.total),
+    }));
   }
 
   async finalizarVencidos(fecha: Date): Promise<number> {

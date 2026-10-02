@@ -2,7 +2,6 @@ import {
   Check,
   Column,
   CreateDateColumn,
-  DeleteDateColumn,
   Entity,
   JoinColumn,
   ManyToOne,
@@ -23,6 +22,10 @@ export enum EstadoReto {
   Activo = 'Activo',
   Finalizado = 'Finalizado',
   Bloqueado = 'Bloqueado',
+  /** Rechazado por el staff: no se muestra en el feed del campus. */
+  Negado = 'Negado',
+  /** Baja logica: quitado del catalogo sin borrar sus participaciones. */
+  Desactivado = 'Desactivado',
 }
 
 @Entity('retos')
@@ -74,9 +77,6 @@ export class Reto {
     default: EstadoReto.PendienteAprobacion,
   })
   estadoReto!: EstadoReto;
-
-  @DeleteDateColumn({ name: 'deleted_at', type: 'timestamp', nullable: true })
-  deletedAt!: Date | null;
 
   @ManyToOne(() => Usuario, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'id_usuario_creador' })

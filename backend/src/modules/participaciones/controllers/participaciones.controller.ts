@@ -54,4 +54,10 @@ export class ParticipacionesController {
       rol: usuario.rol,
     });
   }
+
+  /** Retos aprobados de otro usuario (perfil público, máx 3). */
+  @Get('usuario/:idUsuario/publicos')
+  listarAprobadosPublicos(@Param('idUsuario', ParseIntPipe) idUsuario: number) {
+    return this.participacionesService.listarAprobadosPublicos(idUsuario);
+  }
 }
