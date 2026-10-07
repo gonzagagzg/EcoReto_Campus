@@ -1,0 +1,21 @@
+@if (totalPaginas > 1) {
+  <nav class="paginacion" aria-label="Paginación">
+    <button type="button" class="btn btn--chico" [disabled]="pagina <= 1" (click)="anterior()">
+      Anterior
+    </button>
+
+    <span class="info chico">
+      <strong>{{ pagina }}</strong> de {{ totalPaginas }}
+      <span class="tenue">· {{ rangoInicial }}–{{ rangoFinal }} de {{ total }}</span>
+    </span>
+
+    <button
+      type="button"
+      class="btn btn--chico"
+      [disabled]="pagina >= totalPaginas"
+      (click)="siguiente()"
+    >
+      Siguiente
+    </button>
+  </nav>
+}

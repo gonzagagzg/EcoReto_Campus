@@ -1,0 +1,228 @@
+<div class="auth-wrapper" [class.video-autoplay-fallido]="videoAutoplayFallido()">
+  <!-- Video de fondo -->
+  <video #videoFondo class="auth-video" autoplay muted loop playsinline preload="auto" disablePictureInPicture>
+    <source src="/VideofondoEcoReto.mp4" type="video/mp4" />
+  </video>
+  <!-- Fallback play button si autoplay falla -->
+  <button class="video-play-btn" (click)="reproducirVideo()" aria-label="Reproducir video de fondo">
+    <svg width="48" height="48" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+  </button>
+  <!-- Capa de color encima del video -->
+  <div class="auth-overlay"></div>
+
+  <!-- Contenedor principal verde - MISMAS DIMENSIONES QUE LOGIN -->
+  <div class="auth-container">
+    <!-- Tarjeta blanca ocupando todo el contenedor (igual que la columna derecha del login) -->
+    <div class="auth-card">
+      <!-- Logo pequeño encima del formulario -->
+      <div class="auth-card-logo">
+        <img src="/EcoRetoCampustituloofi.png" alt="EcoReto CAMPUS" class="auth-card-logo-img" />
+      </div>
+
+      @if (aliasRegistrado(); as alias) {
+        <!-- Estado de éxito -->
+        <div class="success-state">
+          <span class="success-icon" aria-hidden="true">✓</span>
+          <h2>¡Listo, {{ alias }}!</h2>
+          <p class="text-muted">
+            Tu cuenta quedó creada y está <strong>pendiente de aprobación</strong> por el equipo de
+            EcoReto. Cuando la activen vas a poder iniciar sesión.
+          </p>
+          <a routerLink="/login" class="btn btn-primary btn-full">Ir a iniciar sesión</a>
+        </div>
+      } @else {
+        <app-alerta [mensaje]="error()" tipo="error" />
+
+        <form (ngSubmit)="enviar()" #formulario="ngForm" novalidate class="auth-form">
+          <div class="form-grid">
+            <div class="form-group">
+              <label for="nombre">Nombre</label>
+              <input
+                id="nombre"
+                name="nombre"
+                class="input"
+                [(ngModel)]="nombre"
+                required
+                aria-describedby="nombre-error"
+              />
+            </div>
+
+            <div class="form-group">
+              <label for="apellido">Apellido</label>
+              <input
+                id="apellido"
+                name="apellido"
+                class="input"
+                [(ngModel)]="apellido"
+                required
+                aria-describedby="apellido-error"
+              />
+            </div>
+
+            <div class="form-group">
+              <label for="correo">Correo</label>
+              <input
+                id="correo"
+                name="correo"
+                type="email"
+                class="input"
+                placeholder="correo@ejemplo.com"
+                [(ngModel)]="correo"
+                autocomplete="email"
+                required
+                aria-describedby="correo-error"
+              />
+            </div>
+
+            <div class="form-group">
+              <label for="cedula">Cédula</label>
+              <input
+                id="cedula"
+                name="cedula"
+                class="input"
+                [(ngModel)]="cedula"
+                required
+                aria-describedby="cedula-error"
+              />
+            </div>
+
+            <div class="form-group">
+              <label for="alias">Alias</label>
+              <input
+                id="alias"
+                name="alias"
+                class="input"
+                [(ngModel)]="alias"
+                required
+                aria-describedby="alias-error"
+              />
+            </div>
+
+            <div class="form-group">
+              <label for="contrasena">Contraseña</label>
+              <div class="password-wrapper">
+                <input
+                  id="contrasena"
+                  name="contrasena"
+                  [type]="verContrasena() ? 'text' : 'password'"
+                  class="input"
+                  placeholder="Tu contraseña"
+                  [(ngModel)]="contrasena"
+                  autocomplete="new-password"
+                  required
+                  aria-describedby="contrasena-error"
+                  (input)="validatePassword($any($event.target).value)"
+                  (focus)="showPasswordTooltip.set(true)"
+                  (blur)="showPasswordTooltip.set(false)"
+                />
+                <button
+                  type="button"
+                  class="toggle-password"
+                  (click)="verContrasena.set(!verContrasena())"
+                  aria-label="{{ verContrasena() ? 'Ocultar contraseña' : 'Ver contraseña' }}"
+                >
+                  {{ verContrasena() ? 'Ocultar' : 'Ver' }}
+                </button>
+                @if (showPasswordTooltip()) {
+                  <div class="password-tooltip" role="tooltip" aria-live="polite">
+                    <div class="tooltip-arrow"></div>
+                    <div class="tooltip-content">
+                      <span class="tooltip-title">Requisitos de contraseña</span>
+                      @for (req of passwordRequirements() | keyvalue; track req.key) {
+                        <span class="tooltip-requirement" [class.met]="req.value">
+                          <span class="req-icon" aria-hidden="true">
+                            @if (req.value) { ✓ } @else { ✕ }
+                          </span>
+                          {{ req.key === 'length' ? 'Mínimo 8 caracteres' :
+                             req.key === 'uppercase' ? 'Una mayúscula' :
+                             req.key === 'lowercase' ? 'Una minúscula' :
+                             req.key === 'number' ? 'Un número' :
+                             'Un carácter especial (!@#$%^&*)' }}
+                        </span>
+                      }
+                    </div>
+                  </div>
+                }
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="repetir">Repetir contraseña</label>
+              <div class="password-wrapper">
+                <input
+                  id="repetir"
+                  name="repetir"
+                  [type]="verContrasena() ? 'text' : 'password'"
+                  class="input"
+                  placeholder="Repite tu contraseña"
+                  [(ngModel)]="repetir"
+                  autocomplete="new-password"
+                  required
+                  aria-describedby="repetir-error"
+                />
+                <button
+                  type="button"
+                  class="toggle-password"
+                  (click)="verContrasena.set(!verContrasena())"
+                  aria-label="{{ verContrasena() ? 'Ocultar contraseña' : 'Ver contraseña' }}"
+                >
+                  {{ verContrasena() ? 'Ocultar' : 'Ver' }}
+                </button>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="carrera">Carrera <span class="optional">(opcional)</span></label>
+              <input id="carrera" name="carrera" class="input" [(ngModel)]="carrera" />
+            </div>
+
+            <div class="form-group">
+              <label for="nivel">Grado <span class="optional">(opcional)</span></label>
+              <input
+                id="nivel"
+                name="nivelCarrera"
+                class="input"
+                placeholder="Ej: Sexto"
+                [(ngModel)]="nivelCarrera"
+              />
+            </div>
+
+            <div class="form-group">
+              <label for="centro">Institución <span class="optional">(opcional)</span></label>
+              <input id="centro" name="centroEstudios" class="input" [(ngModel)]="centroEstudios" />
+            </div>
+          </div>
+
+          @if (catalogo().length) {
+            <fieldset class="interests-fieldset">
+              <legend>Tus intereses</legend>
+              <p class="text-muted small">
+                Elegí los que te interesen: nos sirven para recomendarte retos.
+              </p>
+              <div class="chips">
+                @for (gusto of catalogo(); track gusto.idGusto) {
+                  <button
+                    type="button"
+                    class="chip"
+                    [attr.aria-pressed]="seleccion().includes(gusto.idGusto)"
+                    (click)="alternarGusto(gusto.idGusto)"
+                  >
+                    {{ gusto.nombreGusto }}
+                  </button>
+                }
+              </div>
+            </fieldset>
+          }
+
+          
+
+          <button type="submit" class="btn btn-primary btn-full" [disabled]="enviando()">
+            {{ enviando() ? 'Creando cuenta...' : 'Crear cuenta' }}
+          </button>
+
+          <p class="auth-footer">¿Ya tienes cuenta? <a routerLink="/login">Iniciar sesión</a></p>
+        </form>
+      }
+    </div>
+  </div>
+</div>

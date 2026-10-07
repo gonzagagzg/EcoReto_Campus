@@ -1,0 +1,78 @@
+<div class="auth-wrapper" [class.video-autoplay-fallido]="videoAutoplayFallido()">
+  <!-- Video de fondo -->
+  <video #videoFondo class="auth-video" autoplay muted loop playsinline preload="auto" poster="/EcoRetoCampuslogoofi.png" disablePictureInPicture>
+    <source src="/VideofondoEcoReto.mp4" type="video/mp4" />
+  </video>
+  <!-- Fallback play button si autoplay falla -->
+  <button #btnPlay class="video-play-btn" (click)="reproducirVideo()" aria-label="Reproducir video de fondo">
+    <svg width="48" height="48" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+  </button>
+  <!-- Capa de color encima del video -->
+  <div class="auth-overlay"></div>
+
+  <!-- Contenedor principal verde -->
+  <div class="auth-container">
+    <!-- Columna izquierda: Logo grande -->
+    <div class="auth-brand">
+      <img src="/EcoRetoCampuslogoofi.png" alt="EcoReto Campus" class="auth-logo" />
+    </div>
+
+    <!-- Columna derecha: Tarjeta blanca con formulario -->
+    <div class="auth-card">
+      <!-- Logo pequeño encima del formulario -->
+      <div class="auth-card-logo">
+        <img src="/EcoRetoCampustituloofi.png" alt="EcoReto CAMPUS" class="auth-card-logo-img" />
+      </div>
+
+      <form (ngSubmit)="enviar()" #formulario="ngForm" class="auth-form" novalidate>
+        <div class="form-group">
+          <label for="correo">Correo</label>
+          <input
+            id="correo"
+            name="correo"
+            type="email"
+            class="input"
+            placeholder="correo@ejemplo.com"
+            [(ngModel)]="correo"
+            autocomplete="email"
+            required
+            aria-describedby="correo-error"
+          />
+        </div>
+
+        <div class="form-group">
+          <label for="contrasena">Contraseña</label>
+          <div class="password-wrapper">
+            <input
+              id="contrasena"
+              name="contrasena"
+              [type]="verContrasena ? 'text' : 'password'"
+              class="input"
+              placeholder="Tu contraseña"
+              [(ngModel)]="contrasena"
+              autocomplete="current-password"
+              required
+              aria-describedby="contrasena-error"
+            />
+            <button
+              type="button"
+              class="toggle-password"
+              (click)="verContrasena = !verContrasena"
+              aria-label="{{ verContrasena ? 'Ocultar contraseña' : 'Ver contraseña' }}"
+            >
+              {{ verContrasena ? 'Ocultar' : 'Ver' }}
+            </button>
+          </div>
+        </div>
+
+        <app-alerta [mensaje]="error()" tipo="error" id="correo-error" id="contrasena-error" />
+
+        <button type="submit" class="btn btn-primary btn-full" [disabled]="enviando()">
+          {{ enviando() ? 'Entrando...' : 'Entrar' }}
+        </button>
+
+        <p class="auth-footer">¿Aún no tienes cuenta? <a routerLink="/registro">Regístrate</a></p>
+      </form>
+    </div>
+  </div>
+</div>

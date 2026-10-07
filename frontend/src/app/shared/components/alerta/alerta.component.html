@@ -1,0 +1,6 @@
+@if (mensaje) {
+  <div class="alerta" [ngClass]="'alerta--' + tipo" role="alert">
+    <span class="icono" aria-hidden="true">{{ icono }}</span>
+    <span>{{ mensaje }}</span>
+  </div>
+}

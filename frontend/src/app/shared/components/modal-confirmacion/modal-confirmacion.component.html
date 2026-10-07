@@ -1,0 +1,27 @@
+<div class="modal-fondo" (click)="cancelar.emit()">
+  <div
+    class="modal"
+    role="dialog"
+    aria-modal="true"
+    [attr.aria-label]="titulo"
+    (click)="$event.stopPropagation()"
+  >
+    <h3>{{ titulo }}</h3>
+    <p class="tenue">{{ mensaje }}</p>
+
+    <div class="fila fila--entre">
+      <button type="button" class="btn btn--fantasma" (click)="cancelar.emit()">
+        {{ textoCancelar }}
+      </button>
+      <button
+        type="button"
+        class="btn"
+        [class.btn--peligro]="peligro"
+        [class.btn--primario]="!peligro"
+        (click)="confirmar.emit()"
+      >
+        {{ textoConfirmar }}
+      </button>
+    </div>
+  </div>
+</div>
