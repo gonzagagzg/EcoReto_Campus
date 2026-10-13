@@ -1,0 +1,142 @@
+.edicion {
+  display: grid;
+  grid-template-columns: 1fr 320px;
+  gap: 1.25rem;
+  align-items: start;
+}
+
+.foto-fila {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  flex-wrap: wrap;
+}
+
+.avatar {
+  position: relative;
+  width: 84px;
+  height: 84px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  border: var(--grosor) solid var(--negro);
+  background: var(--verde-lit);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  font-size: 1.8rem;
+  font-weight: 900;
+}
+
+.avatar__fondo,
+.avatar img {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.boton-archivo {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  border: var(--grosor) dashed var(--borde-fuerte);
+  border-radius: var(--radio-chico);
+  background: var(--superficie);
+  padding: 0.6rem 1.1rem;
+  font-weight: 700;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition:
+    border-color var(--veloz),
+    background var(--veloz);
+}
+
+.boton-archivo:hover {
+  border-color: var(--verde);
+  background: var(--verde-suave);
+}
+
+.nota {
+  margin-top: 0.5rem;
+}
+
+.separador {
+  border: none;
+  border-top: 1px dashed var(--borde-fuerte);
+  margin: 1.25rem 0;
+}
+
+.solo-lectura {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+  margin: 1rem 0 1.25rem;
+}
+
+.solo-lectura dt {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-weight: 700;
+  color: var(--texto-tenue);
+}
+
+.solo-lectura dd {
+  margin: 0.1rem 0 0;
+  font-weight: 700;
+  font-size: 0.9rem;
+  word-break: break-word;
+}
+
+@media (max-width: 940px) {
+  .edicion {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 640px) {
+  .foto-fila {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.75rem;
+  }
+
+  .boton-archivo {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+@media (max-width: 480px) {
+  .edicion {
+    gap: 1rem;
+  }
+
+  .avatar {
+    width: 72px;
+    height: 72px;
+    font-size: 1.5rem;
+  }
+
+  .formulario-cuadricula {
+    grid-template-columns: 1fr !important;
+  }
+
+  .entrada,
+  select.entrada,
+  textarea.entrada {
+    font-size: 1rem;
+  }
+
+  .solo-lectura dd {
+    font-size: 0.85rem;
+  }
+}

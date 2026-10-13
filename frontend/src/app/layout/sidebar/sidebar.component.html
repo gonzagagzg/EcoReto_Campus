@@ -1,0 +1,33 @@
+<nav class="sidebar" aria-label="Navegacion principal" [class.abierto]="abierto()">
+  <!-- Cabecera del cajón: solo visible en móvil/tablet -->
+  <div class="sidebar-top">
+    <span class="sidebar-marca">
+      <img src="EcoRetoCampuslogoofi.png" alt="" width="30" height="30" />
+      <span>EcoReto Campus</span>
+    </span>
+    <button type="button" class="sidebar-cerrar" (click)="onNavegar()" aria-label="Cerrar menú">
+      <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+        <path d="M18 6 6 18M6 6l12 12" />
+      </svg>
+    </button>
+  </div>
+
+  <div class="sidebar-scroll">
+    @for (item of items(); track $index) {
+      @if (item.tipo === 'titulo') {
+        <span class="grupo">{{ item.titulo }}</span>
+      } @else {
+        <a [routerLink]="item.enlace.ruta" routerLinkActive="activo" (click)="onNavegar()">
+          <svg class="icono" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+            <path [attr.d]="item.enlace.icono" />
+          </svg>
+          <span class="etiqueta">{{ item.enlace.etiqueta }}</span>
+        </a>
+      }
+    }
+  </div>
+
+  <div class="sidebar-footer">
+    <button type="button" class="btn btn--ancho" (click)="cerrarSesion()">Salir</button>
+  </div>
+</nav>

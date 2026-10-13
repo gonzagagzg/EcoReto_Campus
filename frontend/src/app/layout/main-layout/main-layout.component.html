@@ -1,0 +1,14 @@
+<a href="#contenido-principal" class="skip-link">Saltar al contenido principal</a>
+<div class="layout">
+  <app-header (toggleMenu)="toggleSidebar()" />
+  <div class="cuerpo" [class.watermark]="mostrarWatermark()">
+    @if (sidebarAbierto()) {
+      <div class="sidebar-overlay" (click)="cerrarSidebar()" aria-hidden="true"></div>
+    }
+    <main id="contenido-principal" class="contenido" (click)="cerrarSidebar()">
+      <router-outlet />
+    </main>
+    <app-sidebar [abierto]="sidebarAbierto()" (navegar)="cerrarSidebar()" />
+  </div>
+  <app-chatbot />
+</div>

@@ -41,10 +41,16 @@
                 id="nombre"
                 name="nombre"
                 class="input"
+                [class.input-error]="errores()['nombre']"
+                [attr.aria-invalid]="!!errores()['nombre']"
                 [(ngModel)]="nombre"
+                (input)="limpiarError('nombre')"
                 required
                 aria-describedby="nombre-error"
               />
+              @if (errores()['nombre']) {
+                <p id="nombre-error" class="field-error" role="alert">{{ errores()['nombre'] }}</p>
+              }
             </div>
 
             <div class="form-group">
@@ -53,10 +59,16 @@
                 id="apellido"
                 name="apellido"
                 class="input"
+                [class.input-error]="errores()['apellido']"
+                [attr.aria-invalid]="!!errores()['apellido']"
                 [(ngModel)]="apellido"
+                (input)="limpiarError('apellido')"
                 required
                 aria-describedby="apellido-error"
               />
+              @if (errores()['apellido']) {
+                <p id="apellido-error" class="field-error" role="alert">{{ errores()['apellido'] }}</p>
+              }
             </div>
 
             <div class="form-group">
@@ -66,12 +78,18 @@
                 name="correo"
                 type="email"
                 class="input"
+                [class.input-error]="errores()['correo']"
+                [attr.aria-invalid]="!!errores()['correo']"
                 placeholder="correo@ejemplo.com"
                 [(ngModel)]="correo"
+                (input)="limpiarError('correo')"
                 autocomplete="email"
                 required
                 aria-describedby="correo-error"
               />
+              @if (errores()['correo']) {
+                <p id="correo-error" class="field-error" role="alert">{{ errores()['correo'] }}</p>
+              }
             </div>
 
             <div class="form-group">
@@ -80,10 +98,16 @@
                 id="cedula"
                 name="cedula"
                 class="input"
+                [class.input-error]="errores()['cedula']"
+                [attr.aria-invalid]="!!errores()['cedula']"
                 [(ngModel)]="cedula"
+                (input)="limpiarError('cedula')"
                 required
                 aria-describedby="cedula-error"
               />
+              @if (errores()['cedula']) {
+                <p id="cedula-error" class="field-error" role="alert">{{ errores()['cedula'] }}</p>
+              }
             </div>
 
             <div class="form-group">
@@ -92,10 +116,16 @@
                 id="alias"
                 name="alias"
                 class="input"
+                [class.input-error]="errores()['alias']"
+                [attr.aria-invalid]="!!errores()['alias']"
                 [(ngModel)]="alias"
+                (input)="limpiarError('alias')"
                 required
                 aria-describedby="alias-error"
               />
+              @if (errores()['alias']) {
+                <p id="alias-error" class="field-error" role="alert">{{ errores()['alias'] }}</p>
+              }
             </div>
 
             <div class="form-group">
@@ -106,12 +136,14 @@
                   name="contrasena"
                   [type]="verContrasena() ? 'text' : 'password'"
                   class="input"
+                  [class.input-error]="errores()['contrasena']"
+                  [attr.aria-invalid]="!!errores()['contrasena']"
                   placeholder="Tu contraseña"
                   [(ngModel)]="contrasena"
                   autocomplete="new-password"
                   required
                   aria-describedby="contrasena-error"
-                  (input)="validatePassword($any($event.target).value)"
+                  (input)="validatePassword($any($event.target).value); limpiarError('contrasena')"
                   (focus)="showPasswordTooltip.set(true)"
                   (blur)="showPasswordTooltip.set(false)"
                 />
@@ -143,6 +175,9 @@
                     </div>
                   </div>
                 }
+                @if (errores()['contrasena']) {
+                  <p id="contrasena-error" class="field-error" role="alert">{{ errores()['contrasena'] }}</p>
+                }
               </div>
             </div>
 
@@ -154,8 +189,11 @@
                   name="repetir"
                   [type]="verContrasena() ? 'text' : 'password'"
                   class="input"
+                  [class.input-error]="errores()['repetir']"
+                  [attr.aria-invalid]="!!errores()['repetir']"
                   placeholder="Repite tu contraseña"
                   [(ngModel)]="repetir"
+                  (input)="limpiarError('repetir')"
                   autocomplete="new-password"
                   required
                   aria-describedby="repetir-error"
@@ -168,6 +206,9 @@
                 >
                   {{ verContrasena() ? 'Ocultar' : 'Ver' }}
                 </button>
+                @if (errores()['repetir']) {
+                  <p id="repetir-error" class="field-error" role="alert">{{ errores()['repetir'] }}</p>
+                }
               </div>
             </div>
 

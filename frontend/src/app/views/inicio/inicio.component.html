@@ -1,0 +1,130 @@
+<div class="apilar">
+  <section class="hud subir">
+    <div class="hud__texto">
+      <p class="chico tenue">Hola de nuevo</p>
+      <h1>{{ perfil()?.alias ?? auth.alias() }}</h1>
+      <p class="chico tenue">{{ progreso.nota }}</p>
+    </div>
+
+    <div class="hud__nivel">
+      <div class="fila fila--entre chico">
+        <strong>Nivel {{ perfil()?.nivel ?? '-' }}</strong>
+        <strong>{{ progreso.porcentaje }}%</strong>
+      </div>
+      <div class="barra">
+        <span [style.width.%]="progreso.porcentaje"></span>
+      </div>
+    </div>
+
+    <div class="panel-estadistica panel-estadistica--oro hud__puntos">
+      <span class="rotulo">Puntos</span>
+      <span class="valor"> {{ perfil()?.puntos ?? 0 }} </span>
+      <span class="rotulo">Retos cumplidos {{ perfil()?.retosCumplidos ?? 0 }}</span>
+    </div>
+  </section>
+
+  <section class="tarjeta tarjeta--plana">
+    <form class="filtros" (ngSubmit)="buscar()">
+      <div class="campo">
+        <label for="q">Buscar reto</label>
+        <input
+          id="q"
+          name="busqueda"
+          class="entrada"
+          placeholder="Ej: botellas, ahorra agua..."
+          [(ngModel)]="busqueda"
+        />
+      </div>
+
+      <div class="campo">
+        <label for="cat">Categoría</label>
+        <select id="cat" name="categoria" class="entrada" [(ngModel)]="categoria">
+          <option value="">Todas</option>
+          @for (opcion of categorias; track opcion) {
+            <option [value]="opcion">{{ opcion }}</option>
+          }
+        </select>
+      </div>
+
+      <div class="campo">
+        <label for="dif">Dificultad</label>
+        <select id="dif" name="dificultad" class="entrada" [(ngModel)]="dificultad">
+          <option value="">Todas</option>
+          <option [value]="Dificultad.Facil">Fácil</option>
+          <option [value]="Dificultad.Medio">Medio</option>
+          <option [value]="Dificultad.Dificil">Difícil</option>
+        </select>
+      </div>
+
+      <div class="filtros__botones">
+        <button type="submit" class="btn btn--primario">Buscar</button>
+        <button type="button" class="btn btn--fantasma" (click)="limpiar()">Limpiar</button>
+      </div>
+    </form>
+  </section>
+
+  <app-alerta [mensaje]="error()" tipo="error" />
+
+  @if (cargando()) {
+    <app-loader texto="Cargando retos..." />
+  } @else if (items().length === 0) {
+    <div class="vacio">
+      <span class="vacio__icono" aria-hidden="true">?</span>
+      <p><strong>No encontramos retos con esos filtros</strong></p>
+      <p class="chico">Probá ampliar la búsqueda o revisar más tarde: siempre hay retos nuevos.</p>
+      <button type="button" class="btn btn--secundario" (click)="limpiar()">Limpiar filtros</button>
+    </div>
+  } @else {
+    <div class="malla malla--3">
+      @for (reto of items(); track reto.idReto) {
+        <article class="reto-tarjeta subir">
+          @if (reto.imagenReto) {
+            <img
+              class="reto-tarjeta__imagen"
+              [src]="reto.imagenReto | imagenUrl"
+              [alt]="reto.nombreReto"
+              appImagenRota
+            />
+          }
+
+          <div class="reto-tarjeta__cabecera">
+            <h3 class="reto-tarjeta__titulo">{{ reto.nombreReto }}</h3>
+            <app-insignia [valor]="reto.dificultad" />
+          </div>
+
+          @if (reto.creadorNombre) {
+            <div class="reto-tarjeta__creador">
+              <span class="chico tenue">Creado por</span>
+              <a [routerLink]="['/perfil', reto.idUsuarioCreador]">
+                <strong>{{ reto.creadorNombre }}</strong>
+              </a>
+            </div>
+          }
+
+          <span class="insignia insignia--neutra">{{ reto.categoria }}</span>
+
+          <p class="chico tenue">{{ reto.descripcionReto }}</p>
+
+          <div class="reto-tarjeta__pie">
+            <span class="chico tenue">Hasta {{ fechaCorta(reto.fechaLimite) }}</span>
+            <span class="puntos">
+              <span class="numero">{{ reto.puntosCompletado }}</span>
+              <span class="unidad">pts</span>
+            </span>
+          </div>
+
+          <a class="btn btn--secundario btn--ancho" [routerLink]="['/retos', reto.idReto]">
+            Ver reto
+          </a>
+        </article>
+      }
+    </div>
+
+    <app-paginacion
+      [pagina]="pagina"
+      [limite]="limite"
+      [total]="total()"
+      (cambio)="cambiarPagina($event)"
+    />
+  }
+</div>

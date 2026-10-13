@@ -1,0 +1,304 @@
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.55rem 1.25rem;
+  background: var(--negro);
+  color: var(--blanco);
+  position: sticky;
+  top: 0;
+  z-index: 20;
+}
+
+.menu-toggle {
+  display: none;
+  flex-direction: column;
+  justify-content: center;
+  gap: 5px;
+  width: 44px;
+  height: 44px;
+  background: transparent;
+  border: 2px solid var(--blanco);
+  border-radius: 8px;
+  cursor: pointer;
+  padding: 6px;
+}
+
+.menu-toggle__barra {
+  display: block;
+  width: 100%;
+  height: 2px;
+  background: var(--blanco);
+  border-radius: 2px;
+  transition:
+    transform var(--veloz),
+    opacity var(--veloz);
+}
+
+.menu-toggle:hover .menu-toggle__barra {
+  background: var(--verde);
+}
+
+.marca {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  font-size: 1.5rem;
+  font-weight: 900;
+  letter-spacing: -0.03em;
+  text-decoration: none;
+  color: inherit;
+  flex-shrink: 0;
+}
+.marca span {
+  filter: drop-shadow(0 0 6px rgba(0, 255, 136, 0.3));
+  -webkit-text-stroke: 0.2px var(--verde);
+}
+
+.marca img {
+  width: 36px;
+  height: 36px;
+  object-fit: contain;
+  background: var(--blanco);
+  border-radius: 10px;
+  padding: 3px;
+}
+
+.sesion {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  flex: 1;
+  justify-content: flex-start;
+}
+
+.stat {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  border: 2px solid var(--blanco);
+  border-radius: 999px;
+  padding: 0.15rem 0.7rem;
+  font-weight: 900;
+  font-size: 0.85rem;
+  color: var(--negro);
+  line-height: 1.3;
+}
+
+.stat--oro {
+  background: var(--oro);
+}
+
+.stat--cian {
+  background: var(--cian);
+}
+
+.stat__rotulo {
+  font-size: 0.62rem;
+  letter-spacing: 0.08em;
+  font-weight: 800;
+  opacity: 0.65;
+}
+
+.identidad {
+  display: flex; /* Visible en desktop también */
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.alias {
+  font-weight: 800;
+}
+
+.rol {
+  background: var(--verde);
+  color: var(--negro);
+  border-radius: 999px;
+  padding: 0.1rem 0.6rem;
+  font-size: 0.68rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  display: none; /* Oculto en desktop, visible en tablet/móvil */
+}
+
+.salir {
+  background: transparent;
+  border: 2px solid var(--blanco);
+  color: inherit;
+  border-radius: 999px;
+  padding: 0.22rem 0.85rem;
+  font-weight: 700;
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition:
+    background var(--veloz),
+    color var(--veloz);
+}
+
+.salir:hover {
+  background: var(--blanco);
+  color: var(--negro);
+}
+
+/* Tablet */
+@media (max-width: 900px) {
+  .header {
+    padding: 0.5rem 0.75rem;
+  }
+
+  .menu-toggle {
+    display: flex;
+  }
+
+  .marca span {
+    display: none;
+  }
+
+  .sesion {
+    gap: 0.35rem;
+  }
+
+  .stat {
+    padding: 0.1rem 0.5rem;
+    font-size: 0.75rem;
+  }
+
+  .stat__rotulo {
+    display: none;
+  }
+
+  .identidad {
+    gap: 0.2rem;
+  }
+
+  .rol {
+    display: inline-flex; /* Mostrar rol en tablet */
+    padding: 0.05rem 0.4rem;
+    font-size: 0.6rem;
+  }
+
+  .salir {
+    padding: 0.2rem 0.6rem;
+    font-size: 0.75rem;
+  }
+}
+
+/* Móvil */
+@media (max-width: 600px) {
+  .header {
+    padding: 0.4rem 0.5rem;
+    gap: 0.5rem;
+  }
+
+  .menu-toggle {
+    width: 40px;
+    height: 40px;
+    padding: 5px;
+  }
+
+  .marca img {
+    width: 32px;
+    height: 32px;
+    padding: 2px;
+  }
+
+  .marca span {
+    display: none;
+  }
+
+  .identidad {
+    display: flex; /* Alias visible al lado del logo */
+    gap: 0.35rem;
+  }
+
+  .alias {
+    font-size: 0.9rem;
+    font-weight: 800;
+    max-width: 34vw;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .rol {
+    display: none;
+  }
+
+  .sesion {
+    gap: 0.35rem;
+    flex: 0 1 auto;
+    min-width: 0;
+  }
+
+  .stat {
+    padding: 0.08rem 0.35rem;
+    font-size: 0.65rem;
+    border-width: 1.5px;
+    white-space: nowrap;
+  }
+
+  .stat__rotulo {
+    display: none;
+  }
+
+  .salir {
+    display: none; /* Oculto en móvil, está en el sidebar */
+  }
+}
+
+/* Móvil muy estrecho (iPhone SE, etc) */
+@media (max-width: 400px) {
+  .header {
+    padding: 0.35rem 0.4rem;
+    gap: 0.35rem;
+  }
+
+  .menu-toggle {
+    width: 36px;
+    height: 36px;
+    padding: 4px;
+  }
+
+  .marca img {
+    width: 28px;
+    height: 28px;
+    padding: 1px;
+  }
+
+  .stat {
+    padding: 0.05rem 0.3rem;
+    font-size: 0.6rem;
+    border-width: 1px;
+  }
+
+  .salir {
+    padding: 0.1rem 0.4rem;
+    font-size: 0.6rem;
+    border-width: 1px;
+  }
+}
+
+/* Landscape móvil */
+@media (max-height: 500px) and (orientation: landscape) {
+  .header {
+    padding: 0.3rem 0.5rem;
+  }
+
+  .menu-toggle {
+    width: 36px;
+    height: 36px;
+  }
+
+  .marca img {
+    width: 28px;
+    height: 28px;
+  }
+
+  .stat {
+    padding: 0.05rem 0.3rem;
+    font-size: 0.6rem;
+  }
+}

@@ -1,0 +1,133 @@
+@if (cargando()) {
+  <app-loader texto="Cargando tu perfil..." />
+} @else {
+  <div class="apilar">
+    <a routerLink="/perfil/ver" class="volver">&larr; Volver a mi perfil</a>
+
+    <div class="seccion-titulo">
+      <div>
+        <h1>Editar perfil</h1>
+        <p class="tenue chico">Tu alias, datos académicos y contraseña.</p>
+      </div>
+    </div>
+
+    <app-alerta [mensaje]="error()" tipo="error" />
+    <app-alerta [mensaje]="exito()" tipo="ok" />
+
+    <div class="edicion">
+      <form class="tarjeta" (ngSubmit)="enviar()" novalidate>
+        <h3>Foto de perfil</h3>
+
+        <div class="foto-fila">
+          <div class="avatar">
+            @if (vistaPrevia) {
+              <img [src]="vistaPrevia" alt="Vista previa de la foto" />
+            } @else if (perfil()?.imagenUsuario; as foto) {
+              <img [src]="foto | imagenUrl" alt="Foto de perfil actual" appImagenRota />
+            } @else {
+              <img src="/IconoDefaultUsuarioEcoCampus.png" alt="Foto de perfil por defecto" appImagenRota />
+            }
+          </div>
+
+          <div>
+            <label class="boton-archivo">
+              <span>Cambiar foto</span>
+              <input type="file" accept="image/*" (change)="seleccionarFoto($event)" hidden />
+            </label>
+            <p class="chico tenue nota">JPG, PNG o WebP. Se guarda al guardar el perfil.</p>
+          </div>
+        </div>
+
+        <hr class="separador" />
+
+        <div class="campo">
+          <label for="alias">Alias</label>
+          <input id="alias" name="alias" class="entrada" maxlength="50" [(ngModel)]="alias" />
+        </div>
+
+        <div class="formulario-cuadricula">
+          <div class="campo">
+            <label for="carrera">Carrera</label>
+            <input
+              id="carrera"
+              name="carrera"
+              class="entrada"
+              maxlength="100"
+              [(ngModel)]="carrera"
+            />
+          </div>
+
+          <div class="campo">
+            <label for="nivel">Nivel</label>
+            <input
+              id="nivel"
+              name="nivelCarrera"
+              class="entrada"
+              maxlength="50"
+              placeholder="Ej: Sexto"
+              [(ngModel)]="nivelCarrera"
+            />
+          </div>
+
+          <div class="campo">
+            <label for="centro">Centro de estudios</label>
+            <input
+              id="centro"
+              name="centroEstudios"
+              class="entrada"
+              maxlength="150"
+              [(ngModel)]="centroEstudios"
+            />
+          </div>
+        </div>
+
+        <div class="campo">
+          <label for="contrasena">Nueva contraseña <span class="opcional">(opcional)</span></label>
+          <input
+            id="contrasena"
+            name="contrasena"
+            type="password"
+            class="entrada"
+            autocomplete="new-password"
+            [(ngModel)]="contrasena"
+          />
+          <span class="chico tenue">Dejala vacía para no cambiarla · mínimo 8 caracteres.</span>
+        </div>
+
+        <div class="fila fila--entre">
+          <button type="button" class="btn btn--fantasma" (click)="descartar()">Cancelar</button>
+          <button type="submit" class="btn btn--primario" [disabled]="procesando()">
+            {{ procesando() ? 'Guardando...' : 'Guardar cambios' }}
+          </button>
+        </div>
+      </form>
+
+      <aside class="tarjeta tarjeta--hundida">
+        <h3>Datos que no podés editar</h3>
+        <p class="chico tenue">
+          El nombre, la cédula y el correo institucional son los datos con los que estás
+          identificado, así que se modifican solo cuando el equipo resuelve un ticket de soporte.
+        </p>
+
+        @if (perfil(); as p) {
+          <dl class="solo-lectura">
+            <div>
+              <dt>Nombre</dt>
+              <dd>{{ p.nombre }} {{ p.apellido }}</dd>
+            </div>
+            <div>
+              <dt>Cédula</dt>
+              <dd>{{ p.cedula }}</dd>
+            </div>
+            <div>
+              <dt>Correo</dt>
+              <dd>{{ p.correo }}</dd>
+            </div>
+          </dl>
+        }
+
+        <a class="btn btn--cian btn--ancho" routerLink="/soporte">Pedir un cambio</a>
+      </aside>
+    </div>
+  </div>
+}

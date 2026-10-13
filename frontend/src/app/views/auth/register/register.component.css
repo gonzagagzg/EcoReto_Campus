@@ -227,6 +227,25 @@
   box-shadow: 0 0 0 4px rgba(28, 229, 46, 0.18);
 }
 
+/* Errores independientes por campo (correo / cédula / alias / ...) */
+.input-error {
+  border-color: #d32f2f !important;
+  background: #fef2f2;
+}
+
+.input-error:focus {
+  border-color: #d32f2f !important;
+  box-shadow: 0 0 0 4px rgba(211, 47, 47, 0.15) !important;
+}
+
+.field-error {
+  margin: 0.25rem 0 0;
+  font-size: 0.72rem;
+  font-weight: 700;
+  line-height: 1.4;
+  color: #b71c1c;
+}
+
 /* Wrapper para input con botón de ver/ocultar */
 .password-wrapper {
   position: relative;

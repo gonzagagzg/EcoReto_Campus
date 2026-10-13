@@ -1,0 +1,294 @@
+.ficha-perfil {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 1.5rem;
+  padding: 1.5rem;
+  background: var(--superficie);
+  border: var(--grosor) solid var(--negro);
+  border-radius: var(--radio);
+  box-shadow: 6px 6px 0 var(--cian);
+}
+
+.avatar {
+  position: relative;
+  width: 92px;
+  height: 92px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  border: var(--grosor) solid var(--negro);
+  background: var(--verde-lit);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  font-size: 2rem;
+  font-weight: 900;
+  letter-spacing: -0.04em;
+}
+
+.avatar__fondo,
+.avatar img {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.identidad {
+  flex: 1 1 270px;
+}
+
+.identidad h1 {
+  margin: 0;
+}
+
+.identidad > p {
+  margin: 0.2rem 0 0.6rem;
+}
+
+.identidad .fila:last-child {
+  margin-top: 0.75rem;
+}
+
+.avance {
+  flex: 1 1 290px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.avance p {
+  margin: 0.4rem 0 0;
+}
+
+.listado {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.listado li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.5rem 0.7rem;
+  border: 1px solid var(--borde);
+  border-radius: var(--radio-chico);
+  background: var(--superficie-2);
+}
+
+.reto-info {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  min-width: 0;
+}
+
+.reto-miniatura {
+  width: 44px;
+  height: 44px;
+  flex-shrink: 0;
+  object-fit: cover;
+  border-radius: var(--radio-chico);
+}
+
+.reto-detalle {
+  min-width: 0;
+}
+
+.detalle {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 0.7rem 1rem;
+  margin: 1rem 0;
+  padding: 0.85rem;
+  background: var(--superficie-2);
+  border: var(--grosor) solid var(--borde);
+  border-radius: var(--radio-chico);
+}
+
+.detalle div {
+  min-width: 0;
+}
+
+.detalle dt {
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--texto-tenue);
+}
+
+.detalle dd {
+  margin: 0.2rem 0 0;
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+.nota {
+  margin: 1rem 0;
+  padding: 0.7rem 0.85rem;
+  background: var(--verde-suave);
+  border-left: 4px solid var(--verde);
+  border-radius: var(--radio-chico);
+}
+
+/* Tablet */
+@media (max-width: 760px) {
+  .ficha-perfil {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
+
+/* Móvil */
+@media (max-width: 480px) {
+  .ficha-perfil {
+    padding: 1rem;
+    gap: 1rem;
+  }
+
+  .avatar {
+    width: 80px;
+    height: 80px;
+    font-size: 1.75rem;
+    margin: 0 auto; /* centrado en móvil */
+  }
+
+  .identidad {
+    width: 100%;
+    text-align: center;
+  }
+
+  .identidad h1 {
+    font-size: 1.25rem;
+  }
+
+  .identidad .fila {
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+  }
+
+  .identidad > p {
+    margin: 0.2rem 0 0.5rem;
+  }
+
+  .avance {
+    width: 100%;
+  }
+
+  .panel-estadistica {
+    padding: 1rem;
+  }
+
+  .panel-estadistica .valor {
+    font-size: 1.75rem;
+  }
+
+  .panel-estadistica .rotulo {
+    font-size: 0.8rem;
+  }
+
+  .barra {
+    height: 10px;
+    border-radius: 5px;
+  }
+
+  .malla--2 {
+    grid-template-columns: 1fr !important;
+  }
+
+  .tarjeta {
+    padding: 1rem;
+  }
+
+  .tarjeta h2 {
+    font-size: 1.1rem;
+  }
+
+  .seccion-titulo {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+
+  .seccion-titulo h2 {
+    font-size: 1rem;
+  }
+
+  .listado li {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.35rem;
+    padding: 0.75rem 1rem;
+  }
+
+  .listado li > * {
+    width: 100%;
+  }
+
+  .chips {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.5rem;
+  }
+
+  .chip {
+    font-size: 0.85rem;
+    padding: 0.4rem 0.8rem;
+  }
+
+  .btn--chico {
+    padding: 0.6rem 1rem;
+    font-size: 0.9rem;
+  }
+
+  .fila {
+    flex-direction: column;
+    gap: 0.5rem;
+    align-items: stretch;
+  }
+
+  .fila .btn {
+    width: 100%;
+    text-align: center;
+  }
+}
+
+/* Pantallas muy pequeñas (ej. iPhone SE) */
+@media (max-width: 360px) {
+  .ficha-perfil {
+    padding: 0.75rem;
+  }
+
+  .avatar {
+    width: 70px;
+    height: 70px;
+    font-size: 1.5rem;
+  }
+
+  .identidad h1 {
+    font-size: 1.1rem;
+  }
+
+  .panel-estadistica .valor {
+    font-size: 1.5rem;
+  }
+
+  .tarjeta {
+    padding: 0.75rem;
+  }
+}

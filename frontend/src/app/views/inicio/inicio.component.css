@@ -1,0 +1,181 @@
+.hud {
+  display: grid;
+  grid-template-columns: 1.2fr 1fr auto;
+  gap: 1.5rem;
+  align-items: center;
+  background: var(--superficie);
+  border: var(--grosor) solid var(--negro);
+  border-radius: var(--radio);
+  padding: 1.25rem 1.5rem;
+  box-shadow: 5px 5px 0 var(--verde);
+}
+
+.hud h1,
+.hud p {
+  margin: 0;
+}
+
+.hud h1 {
+  margin-bottom: 0.2rem;
+}
+
+.hud__nivel {
+  min-width: 190px;
+}
+
+.hud__nivel .fila {
+  margin-bottom: 0.4rem;
+}
+
+.hud__nivel .chico {
+  color: var(--texto-tenue);
+}
+
+.hud__puntos {
+  min-width: 150px;
+}
+
+.reto-tarjeta__creador {
+  display: flex;
+  align-items: baseline;
+  gap: 0.4rem;
+  margin-bottom: 0.4rem;
+}
+
+/* Insignia de categoría: se ajusta al texto y envuelve si no cabe */
+.reto-tarjeta > .insignia {
+  align-self: flex-start;
+  max-width: 100%;
+}
+
+.reto-tarjeta__creador a {
+  color: var(--cian);
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.reto-tarjeta__creador a:hover {
+  text-decoration: underline;
+}
+
+.reto-tarjeta__imagen {
+  width: calc(100% + 2.2rem);
+  margin: -1.1rem -1.1rem 0.1rem;
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+  border-bottom: var(--grosor) solid var(--negro);
+  border-radius: calc(var(--radio) - var(--grosor)) calc(var(--radio) - var(--grosor)) 0 0;
+}
+
+@media (max-width: 900px) {
+  .hud {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+    text-align: center;
+  }
+
+  .hud__texto {
+    order: 1;
+  }
+
+  .hud__nivel {
+    order: 2;
+    min-width: 0;
+  }
+
+  .hud__puntos {
+    order: 3;
+    min-width: 0;
+    justify-self: center;
+  }
+
+  .hud__nivel .fila {
+    justify-content: center;
+  }
+
+  .filtros {
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+  }
+
+  .filtros .campo {
+    margin-bottom: 0;
+  }
+
+  .filtros__botones {
+    justify-content: flex-start;
+  }
+}
+
+@media (max-width: 640px) {
+  .hud {
+    padding: 1rem;
+  }
+
+  .hud h1 {
+    font-size: 1.3rem;
+  }
+
+  .hud__nivel .barra {
+    max-width: 200px;
+    margin: 0 auto;
+  }
+
+  .panel-estadistica {
+    padding: 0.75rem 1rem;
+  }
+
+  .panel-estadistica .valor {
+    font-size: 1.5rem;
+  }
+
+  .panel-estadistica .rotulo {
+    font-size: 0.7rem;
+  }
+
+  .filtros__botones {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .filtros__botones .btn {
+    width: 100%;
+  }
+
+  .malla {
+    gap: 0.75rem;
+  }
+
+  .malla--3 {
+    grid-template-columns: 1fr !important;
+  }
+
+  .malla--2 {
+    grid-template-columns: 1fr !important;
+  }
+
+  .reto-tarjeta {
+    padding: 1rem;
+  }
+
+  .reto-tarjeta__imagen {
+    margin: -1rem -1rem 0.5rem;
+  }
+
+  .reto-tarjeta__cabecera {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.4rem;
+  }
+
+  .reto-tarjeta__pie {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+
+  .btn--ancho {
+    width: 100%;
+  }
+}

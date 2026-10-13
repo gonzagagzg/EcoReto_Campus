@@ -1,0 +1,205 @@
+@if (cargando()) {
+  <app-loader texto="Cargando tu perfil..." />
+} @else {
+  <div class="apilar">
+    <app-alerta [mensaje]="error()" tipo="error" />
+
+    @if (perfil(); as p) {
+      <section class="ficha-perfil subir">
+        <div class="avatar">
+          @if (p.imagenUsuario) {
+            <img [src]="p.imagenUsuario | imagenUrl" [alt]="nombreCompleto" appImagenRota />
+          } @else {
+            <img src="/IconoDefaultUsuarioEcoCampus.png" [alt]="nombreCompleto" appImagenRota />
+          }
+        </div>
+
+        <div class="identidad">
+          <div class="fila">
+            <h1>{{ nombreCompleto }}</h1>
+            <app-insignia [valor]="p.rol" />
+          </div>
+
+          <p class="tenue">@{{ p.alias }}</p>
+
+          @if (p.correo || p.cedula) {
+            <div class="fila">
+              @if (p.correo) {
+                <span class="insignia insignia--neutra">{{ p.correo }}</span>
+              }
+              @if (p.cedula) {
+                <span class="insignia insignia--neutra">C.I. {{ p.cedula }}</span>
+              }
+            </div>
+          }
+
+          @if (p.carrera) {
+            <p class="chico tenue">
+              {{ p.carrera }}
+              @if (p.nivelCarrera) {
+                · {{ p.nivelCarrera }}
+              }
+              @if (p.centroEstudios) {
+                · {{ p.centroEstudios }}
+              }
+            </p>
+          }
+
+          <div class="fila">
+            <a class="btn btn--secundario btn--chico" routerLink="/perfil/editar">Editar perfil</a>
+            <a class="btn btn--chico" routerLink="/perfil/gustos">Mis gustos</a>
+          </div>
+        </div>
+
+        <div class="avance">
+          <div class="panel-estadistica panel-estadistica--oro">
+            <span class="rotulo">Puntos</span>
+            <span class="valor"> {{ p.puntos }} </span>
+            <span class="rotulo">Nivel {{ p.nivel }} · {{ p.retosCumplidos }} cumplidos</span>
+          </div>
+
+          <div>
+            <div class="fila fila--entre chico">
+              <strong>Progreso al siguiente nivel</strong>
+              <strong>{{ p.estadisticas.progresoNivel }}%</strong>
+            </div>
+            <div class="barra">
+              <span [style.width.%]="p.estadisticas.progresoNivel"></span>
+            </div>
+            <p class="chico tenue">
+              @if (p.estadisticas.retosRequeridosParaSiguienteNivel; as req) {
+                @let faltan = req - p.retosCumplidos;
+                Faltan {{ faltan }} para nivel {{ p.nivel + 1 }}
+              } @else {
+                ¡Alcanzaste el nivel máximo!
+              }
+            </p>
+          </div>
+        </div>
+      </section>
+       <section class="tarjeta">
+          <div class="seccion-titulo">
+            <h2>Mis gustos</h2>
+            <a class="btn btn--fantasma btn--chico" routerLink="/perfil/gustos">Editar</a>
+          </div>
+
+          @if (p.gustos.length) {
+            <div class="chips">
+              @for (gusto of p.gustos; track gusto.idGusto) {
+                <span class="chip chip--solo-lectura" aria-pressed="true">
+                  {{ gusto.nombreGusto }}
+                </span>
+              }
+            </div>
+          } @else {
+            <p class="tenue chico">
+              Todavía no marcaste ningún interés. Selecciona los tuyos para recibir retos afines.
+            </p>
+          }
+        </section>
+
+      <div class="malla malla--2">
+       
+
+        <section class="tarjeta">
+          <div class="seccion-titulo">
+            <h2>Mis Retos Actuales</h2>
+          </div>
+
+          @if (participacionesActuales().length) {
+            <ul class="listado">
+              @for (reto of participacionesActuales(); track reto.idRetosParticipantes) {
+                <li>
+                  <div class="reto-info">
+                    @if (reto.imagenReto) {
+                      <img [src]="reto.imagenReto | imagenUrl" alt="" class="reto-miniatura" appImagenRota />
+                    }
+                    <div class="reto-detalle">
+                      <strong>{{ reto.nombreReto }}</strong>
+                      <span class="chico tenue"><br>{{ reto.categoria }} · {{ reto.dificultad }}</span>
+                      <span class="chico tenue"><br>Vence: {{ fechaLimite(reto.fechaLimite) }}</span>
+                    </div>
+                  </div>
+                  <a [routerLink]="['/retos', reto.idReto]" class="btn btn--cian btn--chico">
+                    Ver reto
+                  </a>
+                </li>
+              }
+            </ul>
+          } @else {
+            <p class="tenue chico">No estás participando en ningún reto actualmente.</p>
+          }
+        </section>
+
+        <section class="tarjeta">
+          <div class="seccion-titulo">
+            <h2>Participaciones en Retos</h2>
+          </div>
+
+          @if (evidencias().length) {
+            <ul class="listado">
+              @for (item of evidencias(); track item.idParticipacion) {
+                <li>
+                  <span class="chico tenue">{{ item.nombreReto }}</span>
+                  <app-insignia [valor]="item.estadoParticipacion" />
+                  <span class="chico tenue">{{ fecha(item.fechaRevision) }}</span>
+                  @if (item.estadoParticipacion !== EstadoEvaluacion.Enviado) {
+                    <button type="button" class="btn btn--cian btn--chico" (click)="abrirDetalle(item)">
+                      Ver
+                    </button>
+                  }
+                </li>
+              }
+            </ul>
+          } @else {
+            <p class="tenue chico">Todavía no subiste evidencias.</p>
+          }
+        </section>
+      </div>
+    } @else {
+      <div class="vacio">
+        <span class="vacio__icono" aria-hidden="true">!</span>
+        <p><strong>No pudimos cargar tu perfil</strong></p>
+        <p class="chico">Prueba de nuevo en unos segundos.</p>
+      </div>
+    }
+  </div>
+}
+
+@if (verDetalle(); as item) {
+  <div class="modal-fondo" (click)="cerrarDetalle()">
+    <div
+      class="modal"
+      role="dialog"
+      aria-modal="true"
+      [attr.aria-label]="'Detalle evidencia ' + item.idParticipacion"
+      (click)="$event.stopPropagation()"
+    >
+      <h3>{{ item.nombreReto }}</h3>
+
+      <dl class="detalle">
+        <div>
+          <dt>Estado</dt>
+          <dd><app-insignia [valor]="item.estadoParticipacion" /></dd>
+        </div>
+        <div>
+          <dt>Fecha de revisión</dt>
+          <dd>{{ fechaHora(item.fechaRevision) }}</dd>
+        </div>
+        <div>
+          <dt>Revisado por</dt>
+          <dd>{{ item.aliasRevisor ?? '—' }}</dd>
+        </div>
+      </dl>
+      <dl>
+        <div class="nota">
+          <span class="chico tenue">Comentario de revisión</span>
+          <p>{{ item.respuestaEvidencia ?? '—' }}</p>
+        </div>
+      </dl>
+      <div class="fila fila--fin">
+        <button type="button" class="btn btn--primario" (click)="cerrarDetalle()">Cerrar</button>
+      </div>
+    </div>
+  </div>
+}

@@ -5,8 +5,11 @@ import { KeyValuePipe } from '@angular/common';
 import { AuthService } from '../../../core/services/auth.service';
 import { UsuariosService } from '../../../core/services/usuarios.service';
 import { AlertaComponent } from '../../../shared/components/alerta/alerta.component';
-import { mensajeDeError } from '../../../shared/utils/error-http';
+import { mensajeDeError, mensajesDeError } from '../../../shared/utils/error-http';
 import type { Gusto } from '../../../core/models/gusto.model';
+
+type CampoRegistro = 'nombre' | 'apellido' | 'correo' | 'alias' | 'cedula' | 'contrasena' | 'repetir';
+type ErroresRegistro = Partial<Record<CampoRegistro, string>>;
 
 /**
  * Alta de cuenta. El backend acepta cualquier dominio de correo y
@@ -42,6 +45,7 @@ export class RegisterComponent implements AfterViewInit {
   protected seleccion = signal<number[]>([]);
   protected enviando = signal(false);
   protected error = signal('');
+  protected errores = signal<ErroresRegistro>({});
   protected aliasRegistrado = signal<string | null>(null);
   protected verContrasena = signal(false);
   protected showPasswordTooltip = signal(false);
@@ -91,7 +95,7 @@ export class RegisterComponent implements AfterViewInit {
     }
   }
 
-  private validatePassword(password: string): void {
+  protected validatePassword(password: string): void {
     const checks = {
       length: password.length >= 8,
       uppercase: /[A-Z]/.test(password),
@@ -119,36 +123,102 @@ export class RegisterComponent implements AfterViewInit {
     );
   }
 
+  protected limpiarError(campo: CampoRegistro): void {
+    if (!this.errores()[campo]) return;
+    this.errores.update((actual) => {
+      const copia = { ...actual };
+      delete copia[campo];
+      return copia;
+    });
+  }
+
+  private hayErroresDeCampo(errores: ErroresRegistro): boolean {
+    return Object.keys(errores).length > 0;
+  }
+
+  /** Reparte cada mensaje del backend en su campo (correo / cédula / alias / ...). */
+  private aplicarErroresDeBackend(mensajes: string[]): boolean {
+    const porCampo: ErroresRegistro = { ...this.errores() };
+
+    for (const original of mensajes) {
+      const texto = original.toLowerCase();
+      let asignado = false;
+
+      // Cada `if` es independiente: "el correo y la cedula ya estan..."
+      // debe marcar los dos campos a la vez.
+      if (texto.includes('correo') || texto.includes('email')) {
+        porCampo['correo'] = original;
+        asignado = true;
+      }
+      if (texto.includes('cedula') || texto.includes('cédula')) {
+        porCampo['cedula'] = original;
+        asignado = true;
+      }
+      if (texto.includes('alias')) {
+        porCampo['alias'] = original;
+        asignado = true;
+      }
+      if (texto.includes('contrasena') || texto.includes('contraseña') || texto.includes('password')) {
+        porCampo['contrasena'] = original;
+        asignado = true;
+      }
+      if (texto.includes('nombre') && !texto.includes('apellido')) {
+        porCampo['nombre'] = original;
+        asignado = true;
+      }
+      if (texto.includes('apellido')) {
+        porCampo['apellido'] = original;
+        asignado = true;
+      }
+
+      if (!asignado) {
+        this.error.set(this.error() ? `${this.error()} · ${original}` : original);
+      }
+    }
+
+    this.errores.set(porCampo);
+    return this.hayErroresDeCampo(porCampo);
+  }
+
+  private mensajesDelBackend(err: unknown): string[] {
+    // Delega en error-http: ademas de los mensajes de validacion del backend,
+    // oculta los tecnicismos (red caida, 5xx) que no le sirven a la persona.
+    return mensajesDeError(err);
+  }
+
   enviar(): void {
-    const vacios = [
-      ['nombre', this.nombre],
-      ['apellido', this.apellido],
-      ['correo', this.correo],
-      ['alias', this.alias],
-      ['cedula', this.cedula],
-      ['contraseña', this.contrasena],
-    ] as const;
+    // Errores independientes por campo: se muestran todos a la vez,
+    // no solo el primero que falle.
+    const porCampo: ErroresRegistro = {};
 
-    const falta = vacios.find(([, valor]) => !valor.trim());
-
-    if (falta) {
-      this.error.set(`El campo ${falta[0]} es obligatorio.`);
-      return;
+    if (!this.nombre.trim()) porCampo['nombre'] = 'El nombre es obligatorio.';
+    if (!this.apellido.trim()) porCampo['apellido'] = 'El apellido es obligatorio.';
+    if (!this.correo.trim()) {
+      porCampo['correo'] = 'El correo es obligatorio.';
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(this.correo.trim())) {
+      porCampo['correo'] = 'Ingresa un correo válido.';
+    }
+    if (!this.cedula.trim()) porCampo['cedula'] = 'La cédula es obligatoria.';
+    if (!this.alias.trim()) porCampo['alias'] = 'El alias es obligatorio.';
+    if (!this.contrasena) {
+      porCampo['contrasena'] = 'La contraseña es obligatoria.';
+    } else if (!this.isPasswordValid()) {
+      porCampo['contrasena'] =
+        'La contraseña debe tener al menos 8 caracteres, una mayúscula, una minúscula, un número y un carácter especial.';
+    }
+    if (!this.repetir) {
+      porCampo['repetir'] = 'Repite tu contraseña.';
+    } else if (this.contrasena !== this.repetir) {
+      porCampo['repetir'] = 'Las contraseñas no coinciden.';
     }
 
-    if (this.contrasena !== this.repetir) {
-      this.error.set('Las contraseñas no coinciden.');
-      return;
-    }
-
-    if (!this.isPasswordValid()) {
-      this.error.set(
-        'La contraseña debe tener al menos 8 caracteres, una mayúscula, una minúscula, un número y un carácter especial.',
-      );
-      return;
-    }
-
+    this.errores.set(porCampo);
     this.error.set('');
+
+    if (this.hayErroresDeCampo(porCampo)) {
+      return;
+    }
+
     this.enviando.set(true);
 
     this.auth
@@ -168,7 +238,11 @@ export class RegisterComponent implements AfterViewInit {
         next: (respuesta: { alias: string }) => this.aliasRegistrado.set(respuesta.alias),
         error: (err: unknown) => {
           this.enviando.set(false);
-          this.error.set(mensajeDeError(err));
+          this.error.set('');
+          const mapeado = this.aplicarErroresDeBackend(this.mensajesDelBackend(err));
+          if (!mapeado && !this.error()) {
+            this.error.set(mensajeDeError(err));
+          }
         },
       });
   }

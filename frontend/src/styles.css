@@ -1,1 +1,1539 @@
-/* You can add global styles to this file, and also import other style files */
+/* ============================================================
+   EcoReto Campus · sistema de diseño
+   Paleta: #87FF82 #CEFFCA #F9AD1F #1CE52E #00E3F7 #FFFFFF #000000
+   ============================================================ */
+
+:root {
+  /* Paleta principal */
+  --verde: #1ce52e;
+  --verde-lit: #87ff82;
+  --verde-suave: #ceffca;
+  --oro: #f9ad1f;
+  --cian: #00e3f7;
+  --negro: #000000;
+  --blanco: #ffffff;
+
+  /* Tonalidades derivadas para dar profundidad */
+  --fondo: #eeffed;
+  --fondo-hondo: #ddffd9;
+  --superficie: #ffffff;
+  --superficie-2: #f5fff4;
+  --borde: #cdf0cb;
+  --borde-fuerte: #a9e6a6;
+  --texto: #05140a;
+  --texto-tenue: #55705c;
+  --sombra: 0 10px 28px rgba(5, 20, 10, 0.09);
+  --sombra-alta: 0 18px 44px rgba(5, 20, 10, 0.16);
+  --radio: 16px;
+  --radio-chico: 10px;
+  --grosor: 2px;
+  --veloz: 0.16s ease;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  min-height: 100%;
+}
+
+body {
+  font-family:
+    'Segoe UI',
+    system-ui,
+    -apple-system,
+    Roboto,
+    Helvetica,
+    Arial,
+    sans-serif;
+  color: var(--texto);
+  background: var(--fondo);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  font-size: 15px;
+  line-height: 1.5;
+}
+
+h1,
+h2,
+h3,
+h4 {
+  margin: 0 0 0.5rem;
+  letter-spacing: -0.03em;
+  line-height: 1.15;
+  font-weight: 800;
+}
+
+h1 {
+  font-size: 1.75rem;
+}
+h2 {
+  font-size: 1.35rem;
+}
+h3 {
+  font-size: 1.05rem;
+}
+
+p {
+  margin: 0 0 0.75rem;
+}
+
+a {
+  color: inherit;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+  color: inherit;
+}
+
+img {
+  max-width: 100%;
+  display: block;
+}
+
+/* ------------------------------------------------------------
+   Tipografia de apoyo
+   ------------------------------------------------------------ */
+.tenue {
+  color: var(--texto-tenue);
+}
+
+.chico {
+  font-size: 0.8125rem;
+}
+
+.pulido {
+  letter-spacing: -0.03em;
+  font-weight: 800;
+}
+
+.resaltar-verde {
+  background: linear-gradient(transparent 62%, var(--verde-lit) 62%);
+  padding: 0 0.15em;
+}
+
+.resaltar-oro {
+  background: linear-gradient(transparent 62%, #ffe0a3 62%);
+  padding: 0 0.15em;
+}
+
+/* ------------------------------------------------------------
+   Tarjetas y paneles
+   ------------------------------------------------------------ */
+.tarjeta {
+  background: var(--superficie);
+  border: var(--grosor) solid var(--borde);
+  border-radius: var(--radio);
+  padding: 1.25rem;
+  box-shadow: var(--sombra);
+}
+
+.tarjeta--plana {
+  box-shadow: none;
+}
+
+.tarjeta--hundida {
+  background: var(--superficie-2);
+  box-shadow: none;
+}
+
+.tarjeta--destacada {
+  border-color: var(--verde);
+  background: linear-gradient(180deg, var(--superficie) 0%, var(--superficie-2) 100%);
+}
+
+.panel-estadistica {
+  background: var(--negro);
+  color: var(--blanco);
+  border-radius: var(--radio);
+  padding: 1rem 1.15rem;
+  position: relative;
+  overflow: hidden;
+}
+
+.panel-estadistica::after {
+  content: '';
+  position: absolute;
+  right: -28px;
+  top: -28px;
+  width: 92px;
+  height: 92px;
+  border-radius: 50%;
+  background: var(--verde);
+  opacity: 0.28;
+}
+
+.panel-estadistica .valor {
+  font-size: 1.9rem;
+  font-weight: 900;
+  letter-spacing: -0.04em;
+  line-height: 1;
+}
+
+.panel-estadistica .rotulo {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  opacity: 0.75;
+}
+
+.panel-estadistica--oro::after {
+  background: var(--oro);
+}
+.panel-estadistica--cian::after {
+  background: var(--cian);
+}
+
+/* ------------------------------------------------------------
+   Botones
+   ------------------------------------------------------------ */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  border: var(--grosor) solid var(--negro);
+  border-radius: 999px;
+  padding: 0.55rem 1.25rem;
+  background: var(--blanco);
+  color: var(--negro);
+  font-weight: 700;
+  font-size: 0.9rem;
+  cursor: pointer;
+  text-decoration: none;
+  transition:
+    transform var(--veloz),
+    box-shadow var(--veloz),
+    background var(--veloz);
+  box-shadow: 3px 3px 0 var(--negro);
+}
+
+.btn:hover:not(:disabled) {
+  transform: translate(-2px, -2px);
+  box-shadow: 5px 5px 0 var(--negro);
+}
+
+.btn:active:not(:disabled) {
+  transform: translate(2px, 2px);
+  box-shadow: 1px 1px 0 var(--negro);
+}
+
+.btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+.btn--primario {
+  background: var(--verde);
+}
+
+.btn--secundario {
+  background: var(--verde-lit);
+}
+
+.btn--oro {
+  background: var(--oro);
+}
+
+.btn--cian {
+  background: var(--cian);
+}
+
+.btn--negro {
+  background: var(--negro);
+  color: var(--blanco);
+  box-shadow: 3px 3px 0 var(--verde);
+}
+
+.btn--peligro {
+  background: #ff5a5a;
+}
+
+.btn--chico {
+  padding: 0.3rem 0.8rem;
+  font-size: 0.8rem;
+  box-shadow: 2px 2px 0 var(--negro);
+}
+
+.btn--ancho {
+  width: 100%;
+}
+
+.btn--fantasma {
+  border-color: transparent;
+  box-shadow: none;
+  background: transparent;
+}
+
+.btn--fantasma:hover:not(:disabled) {
+  background: var(--verde-suave);
+  transform: none;
+  box-shadow: none;
+}
+
+/* ------------------------------------------------------------
+   Formularios
+   ------------------------------------------------------------ */
+.campo {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  margin-bottom: 0.9rem;
+}
+
+.campo > label {
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--texto-tenue);
+}
+
+.entrada,
+select.entrada,
+textarea.entrada {
+  width: 100%;
+  border: var(--grosor) solid var(--borde-fuerte);
+  border-radius: var(--radio-chico);
+  background: var(--superficie);
+  padding: 0.6rem 0.8rem;
+  transition:
+    border-color var(--veloz),
+    box-shadow var(--veloz);
+}
+
+.entrada:focus {
+  outline: none;
+  border-color: var(--verde);
+  box-shadow: 0 0 0 4px rgba(28, 229, 46, 0.22);
+}
+
+.entrada::placeholder {
+  color: #9bb3a1;
+}
+
+.entrada--error,
+.entrada[aria-invalid='true'] {
+  border-color: #e02020;
+  box-shadow: 0 0 0 4px rgba(224, 32, 32, 0.14);
+}
+
+.error-campo {
+  color: #c11212;
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+
+.formulario-cuadricula {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  gap: 0 1rem;
+}
+
+/* Barra de filtros de listados: campos en fila con los botones al final. */
+.filtros {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr auto;
+  gap: 0 1rem;
+  align-items: end;
+}
+
+.filtros .campo {
+  margin-bottom: 0;
+}
+
+.filtros__botones {
+  display: flex;
+  gap: 0.5rem;
+}
+
+/* Variante de la barra de filtros con dos campos y los botones. */
+.filtros--2 {
+  grid-template-columns: 1fr 1fr auto;
+}
+
+.filtros--1 {
+  grid-template-columns: minmax(200px, 1fr) auto;
+}
+
+.entrada--tabla {
+  padding: 0.35rem 0.5rem;
+  font-size: 0.82rem;
+  border-radius: 8px;
+}
+
+@media (max-width: 900px) {
+  .filtros {
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+  }
+
+  .filtros .campo {
+    margin-bottom: 0;
+  }
+
+  .filtros__botones {
+    justify-content: flex-start;
+  }
+}
+
+/* ------------------------------------------------------------
+   Avisos
+   ------------------------------------------------------------ */
+.alerta {
+  border: var(--grosor) solid var(--negro);
+  border-radius: var(--radio-chico);
+  padding: 0.65rem 0.9rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+  display: flex;
+  gap: 0.5rem;
+  align-items: flex-start;
+}
+
+.alerta--ok {
+  background: var(--verde-suave);
+}
+.alerta--info {
+  background: #d9fbff;
+}
+.alerta--error {
+  background: #ffe0e0;
+}
+.alerta--aviso {
+  background: #fff2d6;
+}
+
+/* ------------------------------------------------------------
+   Insignias y chips
+   ------------------------------------------------------------ */
+.insignia {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  max-width: 100%;
+  border: var(--grosor) solid var(--negro);
+  border-radius: 999px;
+  padding: 0.1rem 0.6rem;
+  font-size: 0.72rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  background: var(--blanco);
+  /* Chip de una sola línea: textos cortos como "150 pts" o "Difícil"
+     nunca se parten. Las insignias con texto dinámico y largo
+     (--neutra) son las únicas que envuelven si no caben. */
+  white-space: nowrap;
+}
+
+.insignia--verde {
+  background: var(--verde);
+}
+.insignia--lit {
+  background: var(--verde-lit);
+}
+.insignia--oro {
+  background: var(--oro);
+}
+.insignia--cian {
+  background: var(--cian);
+}
+.insignia--negra {
+  background: var(--negro);
+  color: var(--blanco);
+}
+.insignia--neutra {
+  background: var(--verde-suave);
+  /* Texto dinámico (categoría, carrera, correo…): se ajusta al alto y
+     envuelve dentro del contenedor en vez de desbordar. break-word (no
+     anywhere) mantiene el ancho mínimo de cada palabra. */
+  white-space: normal;
+  overflow-wrap: break-word;
+  line-height: 1.4;
+}
+.insignia--gris {
+  background: #e6ece7;
+  color: var(--texto-tenue);
+}
+.insignia--rojo {
+  background: #ff8a8a;
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.chip {
+  border: var(--grosor) solid var(--negro);
+  background: var(--blanco);
+  border-radius: 999px;
+  padding: 0.3rem 0.75rem;
+  font-size: 0.8rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition:
+    background var(--veloz),
+    transform var(--veloz);
+}
+
+.chip:hover {
+  transform: translateY(-1px);
+}
+
+.chip[aria-pressed='true'] {
+  background: var(--verde);
+}
+
+.chip--solo-lectura {
+  cursor: default;
+}
+
+.chip--solo-lectura:hover {
+  transform: none;
+}
+
+/* ------------------------------------------------------------
+   Barras de progreso
+   ------------------------------------------------------------ */
+.barra {
+  height: 12px;
+  border: var(--grosor) solid var(--negro);
+  border-radius: 999px;
+  background: var(--blanco);
+  overflow: hidden;
+}
+
+.barra > span {
+  display: block;
+  height: 100%;
+  background: repeating-linear-gradient(-45deg, var(--verde) 0 10px, var(--verde-lit) 10px 20px);
+  transition: width 0.5s ease;
+}
+
+.barra--cian > span {
+  background: repeating-linear-gradient(-45deg, var(--cian) 0 10px, #9df4ff 10px 20px);
+}
+
+.barra--oro > span {
+  background: repeating-linear-gradient(-45deg, var(--oro) 0 10px, #ffd58a 10px 20px);
+}
+
+/* ------------------------------------------------------------
+   Tablas
+   ------------------------------------------------------------ */
+.tabla-envoltorio {
+  overflow-x: auto;
+  border: var(--grosor) solid var(--borde-fuerte);
+  border-radius: var(--radio);
+  background: var(--superficie);
+}
+
+.tabla {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+}
+
+.tabla th {
+  background: var(--negro);
+  color: var(--blanco);
+  text-align: left;
+  padding: 0.65rem 0.85rem;
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  white-space: nowrap;
+}
+
+.tabla td {
+  padding: 0.6rem 0.85rem;
+  border-bottom: 1px solid var(--borde);
+  vertical-align: middle;
+}
+
+.tabla tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.tabla tbody tr:hover {
+  background: var(--superficie-2);
+}
+
+.tabla .acciones {
+  display: flex;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+}
+
+/* Botones de acción del mismo ancho (Editar/Eliminar) sin importar el texto.
+   min-width: max-content evita que encójan debajo de su contenido. */
+.tabla .acciones .btn {
+  flex: 1 1 0;
+  min-width: max-content;
+}
+
+/* ------------------------------------------------------------
+   Tablas en móvil: los listados con `tabla--tarjetas` dejan el
+   scroll horizontal de lado y cada fila pasa a ser una ficha
+   apilada. Las celdas muestran su columna con `data-label`.
+   ------------------------------------------------------------ */
+@media (max-width: 640px) {
+  .tabla--tarjetas thead {
+    display: none;
+  }
+
+  .tabla--tarjetas,
+  .tabla--tarjetas tbody,
+  .tabla--tarjetas tr,
+  .tabla--tarjetas td {
+    display: block;
+    width: 100%;
+  }
+
+  .tabla--tarjetas tbody tr {
+    background: var(--superficie);
+    border: var(--grosor) solid var(--borde-fuerte);
+    border-radius: var(--radio);
+    padding: 0.75rem 0.9rem;
+    margin-bottom: 0.75rem;
+    box-shadow: 3px 3px 0 var(--borde-fuerte);
+  }
+
+  .tabla--tarjetas tbody tr:last-child {
+    margin-bottom: 0;
+  }
+
+  .tabla--tarjetas td {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    padding: 0.5rem 0;
+    border-bottom: 1px dashed var(--borde);
+  }
+
+  .tabla--tarjetas td::before {
+    content: attr(data-label);
+    font-size: 0.68rem;
+    font-weight: 800;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--texto-tenue);
+    flex: 0 0 auto;
+  }
+
+  /* La primera celda es el encabezado de la ficha: va sin rótulo. */
+  .tabla--tarjetas td:first-child {
+    display: block;
+    padding-top: 0;
+    padding-bottom: 0.65rem;
+    border-bottom: 1px solid var(--borde);
+    margin-bottom: 0.15rem;
+  }
+
+  .tabla--tarjetas td:first-child::before {
+    content: none;
+  }
+
+  .tabla--tarjetas td:last-child {
+    display: block;
+    padding-bottom: 0;
+    border-bottom: none;
+  }
+
+  .tabla--tarjetas td .entrada {
+    flex: 1;
+    min-width: 0;
+    max-width: 65%;
+  }
+
+  .tabla--tarjetas td .acciones {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+    gap: 0.5rem;
+    width: 100%;
+  }
+
+  .tabla--tarjetas td .acciones .btn {
+    width: 100%;
+    min-height: 44px;
+  }
+}
+
+/* ------------------------------------------------------------
+   Retos · tarjeta de desafio
+   ------------------------------------------------------------ */
+.reto-tarjeta {
+  position: relative;
+  background: var(--superficie);
+  border: var(--grosor) solid var(--negro);
+  border-radius: var(--radio);
+  padding: 1.1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  box-shadow: 4px 4px 0 var(--borde-fuerte);
+  transition:
+    transform var(--veloz),
+    box-shadow var(--veloz);
+}
+
+.reto-tarjeta:hover {
+  transform: translate(-3px, -3px);
+  box-shadow: 8px 8px 0 var(--verde);
+}
+
+.reto-tarjeta__cabecera {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 0.6rem;
+}
+
+.reto-tarjeta__titulo {
+  font-size: 1.05rem;
+  font-weight: 800;
+  margin: 0;
+  letter-spacing: -0.02em;
+}
+
+.reto-tarjeta__pie {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.6rem;
+  margin-top: auto;
+  padding-top: 0.4rem;
+  border-top: 1px dashed var(--borde-fuerte);
+}
+
+.puntos {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.25rem;
+  font-weight: 900;
+  color: var(--negro);
+}
+
+.puntos .numero {
+  font-size: 1.35rem;
+  letter-spacing: -0.04em;
+}
+
+.puntos .unidad {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--texto-tenue);
+}
+
+/* ------------------------------------------------------------
+   Estados vacios y utilidades
+   ------------------------------------------------------------ */
+.vacio {
+  text-align: center;
+  padding: 2.5rem 1rem;
+  color: var(--texto-tenue);
+  border: 2px dashed var(--borde-fuerte);
+  border-radius: var(--radio);
+  background: var(--superficie-2);
+}
+
+.vacio__icono {
+  font-size: 1.4rem;
+  font-weight: 900;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  border: 2px dashed var(--borde-fuerte);
+  border-radius: 50%;
+  margin-bottom: 0.55rem;
+}
+
+.malla {
+  display: grid;
+  gap: 1rem;
+}
+
+.malla--2 {
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+}
+.malla--3 {
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+}
+.malla--4 {
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+}
+
+.fila {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+}
+
+.fila--entre {
+  justify-content: space-between;
+}
+
+.fila--fin {
+  align-items: flex-end;
+}
+
+.apilar {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.seccion-titulo {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin-bottom: 1rem;
+}
+
+.derecha {
+  text-align: right;
+}
+
+.centro {
+  text-align: center;
+}
+
+.fila--centrar {
+  justify-content: center;
+}
+
+.volver {
+  display: inline-flex;
+  align-items: center;
+  align-self: flex-start;
+  font-weight: 700;
+  font-size: 0.9rem;
+  text-decoration: none;
+  color: var(--texto-tenue);
+}
+
+.volver:hover {
+  color: var(--texto);
+  text-decoration: none;
+}
+
+.opcional {
+  font-weight: 600;
+  font-size: 0.72rem;
+  text-transform: none;
+  letter-spacing: 0;
+  color: var(--texto-tenue);
+}
+
+.ancho-completo {
+  width: 100%;
+}
+
+/* ------------------------------------------------------------
+   Cargando
+   ------------------------------------------------------------ */
+.cargando {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 2.5rem 1rem;
+  color: var(--texto-tenue);
+  font-weight: 600;
+}
+
+.rueda {
+  width: 40px;
+  height: 40px;
+  border: 4px solid var(--verde-suave);
+  border-top-color: var(--verde);
+  border-radius: 50%;
+  animation: girar 0.7s linear infinite;
+}
+
+@keyframes girar {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ------------------------------------------------------------
+   Modal
+   ------------------------------------------------------------ */
+.modal-fondo {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow-y: auto;
+  padding: 1rem;
+  z-index: 50;
+}
+
+.modal {
+  background: var(--superficie);
+  border: var(--grosor) solid var(--negro);
+  border-radius: var(--radio);
+  padding: 1.5rem;
+  width: min(440px, 100%);
+  /* Con detalles largos el propio modal hace scroll en vez de salirse de la pantalla. */
+  max-height: calc(100dvh - 2rem);
+  overflow-y: auto;
+  box-shadow: 8px 8px 0 var(--verde);
+}
+
+.modal--ancho {
+  width: min(640px, 100%);
+}
+
+/* ------------------------------------------------------------
+   Vista de acceso (login / registro) centrada con marca
+   ------------------------------------------------------------ */
+.acceso {
+  min-height: 100dvh;
+  display: grid;
+  grid-template-columns: 1fr;
+  place-items: center;
+  padding: 2rem 1rem;
+  background:
+    radial-gradient(circle at 15% 20%, rgba(135, 255, 130, 0.55), transparent 42%),
+    radial-gradient(circle at 85% 80%, rgba(0, 227, 247, 0.35), transparent 45%), var(--fondo);
+}
+
+.acceso__caja {
+  width: min(430px, 100%);
+  background: var(--superficie);
+  border: var(--grosor) solid var(--negro);
+  border-radius: calc(var(--radio) + 6px);
+  padding: 2rem;
+  box-shadow: 10px 10px 0 var(--negro);
+}
+
+.acceso__marca {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.4rem;
+  margin-bottom: 1.4rem;
+  text-align: center;
+}
+
+.acceso__marca img {
+  width: 96px;
+  height: 96px;
+  object-fit: contain;
+}
+
+.acceso__marca h1 {
+  margin: 0;
+  font-size: 1.6rem;
+}
+
+/* ------------------------------------------------------------
+   Animaciones de entrada
+   ------------------------------------------------------------ */
+@keyframes subir {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.subir {
+  animation: subir 0.3s ease both;
+}
+
+@keyframes latido {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.06);
+  }
+}
+
+.latido {
+  animation: latido 1.6s ease-in-out infinite;
+  display: inline-block;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    transition-duration: 0.001ms !important;
+  }
+}
+
+/* ============================================================
+   Responsive Breakpoints & Utilities
+   ============================================================ */
+
+/* Breakpoint variables for consistent media queries */
+:root {
+  --bp-xs: 360px;
+  --bp-sm: 480px;
+  --bp-md: 640px;
+  --bp-lg: 900px;
+  --bp-xl: 1200px;
+}
+
+/* Touch target minimum size (44px per accessibility guidelines) */
+@media (hover: none) and (pointer: coarse) {
+  .btn,
+  .entrada,
+  select.entrada,
+  textarea.entrada,
+  a,
+  button,
+  [role='button'],
+  .chip,
+  .insignia,
+  .salir,
+  .toggle-password,
+  .sidebar a,
+  .ranking-usuario,
+  .acciones button {
+    min-height: 44px;
+    min-width: 44px;
+  }
+}
+
+/* Prevent horizontal overflow on mobile */
+html,
+body {
+  max-width: 100vw;
+  overflow-x: hidden;
+}
+
+/* Bloquea el scroll del fondo mientras el cajón del sidebar está abierto */
+body.menu-abierto {
+  overflow: hidden;
+}
+
+/* Safe area insets for notched devices */
+@supports (padding: max(0px)) {
+  .layout,
+  .auth-wrapper,
+  .acceso,
+  .contenido {
+    padding-left: max(1rem, env(safe-area-inset-left));
+    padding-right: max(1rem, env(safe-area-inset-right));
+    padding-bottom: max(1rem, env(safe-area-inset-bottom));
+  }
+}
+
+/* Extra small phones (≤360px) */
+@media (max-width: 360px) {
+  :root {
+    --radio: 12px;
+    --radio-chico: 8px;
+    --grosor: 1.5px;
+  }
+
+  body {
+    font-size: 14px;
+  }
+
+  h1 {
+    font-size: 1.5rem;
+  }
+
+  h2 {
+    font-size: 1.2rem;
+  }
+
+  .btn {
+    padding: 0.5rem 1rem;
+    font-size: 0.85rem;
+  }
+
+  .btn--chico {
+    padding: 0.25rem 0.6rem;
+    font-size: 0.75rem;
+  }
+
+  .tarjeta {
+    padding: 1rem;
+  }
+
+  .contenido {
+    padding: 1rem !important;
+  }
+
+  .modal {
+    padding: 1rem;
+    width: 100%;
+  }
+
+  .malla--2,
+  .malla--3,
+  .malla--4 {
+    grid-template-columns: 1fr !important;
+  }
+
+  .filtros {
+    grid-template-columns: 1fr !important;
+  }
+
+  .filtros__botones {
+    justify-content: stretch !important;
+  }
+
+  .filtros__botones .btn {
+    flex: 1;
+  }
+
+  .panel-estadistica .valor {
+    font-size: 1.5rem;
+  }
+
+  .stat {
+    padding: 0.1rem 0.5rem;
+    font-size: 0.75rem;
+  }
+
+  .stat__rotulo {
+    display: none;
+  }
+
+  .identidad {
+    gap: 0.2rem;
+  }
+
+  .rol {
+    padding: 0.05rem 0.4rem;
+    font-size: 0.6rem;
+  }
+
+  .marca span {
+    display: none !important;
+  }
+
+  .acceso__caja {
+    padding: 1.5rem;
+  }
+
+  .auth-card {
+    padding: 1.25rem !important;
+  }
+
+  .auth-brand {
+    min-height: 120px !important;
+  }
+
+  .auth-logo {
+    max-height: 100px !important;
+  }
+
+  .ranking-item {
+    padding: 0.75rem;
+    gap: 0.5rem;
+  }
+
+  .ranking-posicion {
+    min-width: 36px;
+  }
+
+  .avatar {
+    width: 40px;
+    height: 40px;
+    font-size: 1rem;
+  }
+
+  .puntos-valor {
+    font-size: 1.1rem;
+  }
+
+  .ficha__cuerpo,
+  .ficha__premio {
+    padding: 1rem !important;
+  }
+
+  .hud {
+    padding: 1rem !important;
+  }
+
+  .page-header h1 {
+    font-size: 1.4rem !important;
+  }
+}
+
+/* Small phones (≤480px) */
+@media (max-width: 480px) {
+  .contenido {
+    padding: 1rem;
+  }
+
+  .hud {
+    grid-template-columns: 1fr !important;
+    gap: 1rem;
+    text-align: center;
+  }
+
+  .hud__nivel,
+  .hud__puntos {
+    min-width: 0;
+  }
+
+  .hud__puntos {
+    justify-self: center;
+  }
+
+  .fila {
+    gap: 0.4rem;
+  }
+
+  .reto-tarjeta {
+    padding: 1rem;
+  }
+
+  .reto-tarjeta__imagen {
+    margin: -1rem -1rem 0.5rem;
+  }
+
+  .acceso__caja {
+    padding: 1.5rem;
+  }
+
+  .auth-card {
+    padding: 1.5rem !important;
+  }
+
+  .auth-form {
+    gap: 1rem;
+  }
+
+  .input {
+    padding: 0.75rem 0.875rem;
+  }
+
+  .btn-primary {
+    padding: 0.8rem 1.25rem;
+    font-size: 0.9rem;
+  }
+
+  .modal {
+    width: calc(100% - 1rem);
+    max-height: calc(100dvh - 1rem);
+  }
+}
+
+/* Medium screens (≤640px) - Mobile landscape / small tablets */
+@media (max-width: 640px) {
+  .seccion-titulo {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.75rem;
+  }
+
+  .seccion-titulo .fila {
+    width: 100%;
+    justify-content: flex-start;
+  }
+
+  .malla--3 {
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  }
+
+  /* Móvil: campos a 16px para evitar el zoom automático de iOS al enfocar */
+  .entrada,
+  .input,
+  .filtro {
+    font-size: 16px !important;
+  }
+
+  /* Móvil: cortar palabras largas (alias, URLs) para que no disparen
+     scroll horizontal dentro de tarjetas y encabezados */
+  h1,
+  h2,
+  h3,
+  h4,
+  p {
+    overflow-wrap: anywhere;
+  }
+
+  .tabla th,
+  .tabla td {
+    padding: 0.5rem 0.6rem;
+    font-size: 0.8rem;
+  }
+
+  .acciones {
+    gap: 0.3rem;
+  }
+
+  .acciones .btn--chico {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.7rem;
+  }
+
+  /* Botones de la barra de filtros a ancho completo en pantallas chicas. */
+  .filtros__botones {
+    width: 100%;
+  }
+
+  .filtros__botones .btn {
+    flex: 1;
+  }
+
+  /* Modales: más aire y que nunca queden más altos que la pantalla. */
+  .modal-fondo {
+    padding: 0.5rem;
+  }
+
+  .modal {
+    max-height: calc(100dvh - 1rem);
+  }
+}
+
+/* Large mobile / small tablets (≤768px) */
+@media (max-width: 768px) {
+  .auth-container {
+    grid-template-columns: 1fr !important;
+    max-width: 100%;
+    border-radius: 20px;
+    box-shadow: 8px 8px 0 rgba(0, 0, 0, 0.4);
+    min-height: auto;
+  }
+
+  .auth-brand {
+    padding: 1.5rem;
+    min-height: 180px;
+  }
+
+  .auth-logo {
+    max-height: 160px;
+  }
+
+  .auth-card {
+    padding: 2rem;
+    min-height: auto;
+  }
+
+  .auth-card-logo-img {
+    max-height: 55px;
+  }
+}
+
+/* Tablets and small desktop (≤900px) */
+@media (max-width: 900px) {
+  .cuerpo {
+    flex-direction: column;
+  }
+
+  /* El sidebar pasa a cajón deslizante: ver sidebar.component.css */
+
+  .ficha {
+    grid-template-columns: 1fr;
+  }
+
+  .ficha__premio {
+    border-left: none;
+    border-top: var(--grosor) solid var(--negro);
+  }
+
+  .filtros {
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+  }
+
+  .filtros .campo {
+    margin-bottom: 0;
+  }
+
+  .filtros__botones {
+    justify-content: flex-start;
+  }
+
+  .malla--3 {
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  }
+
+  .malla--2 {
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  }
+
+  .ranking-item {
+    grid-template-columns: auto 1fr;
+    grid-template-areas:
+      'posicion usuario'
+      'posicion puntos';
+  }
+
+  .ranking-posicion {
+    grid-area: posicion;
+  }
+
+  .ranking-usuario {
+    grid-area: usuario;
+  }
+
+  .ranking-puntos {
+    grid-area: puntos;
+    align-items: flex-start;
+    min-width: auto;
+    flex-direction: row;
+    gap: 0.35rem;
+  }
+
+  .puntos-label {
+    display: none;
+  }
+}
+
+/* Desktop (≥1200px) - Optional enhancements */
+@media (min-width: 1200px) {
+  .contenido {
+    max-width: 1400px;
+    margin: 0 auto;
+    width: 100%;
+  }
+}
+
+/* Landscape orientation on mobile */
+@media (max-height: 500px) and (orientation: landscape) {
+  .acceso {
+    padding: 1rem;
+  }
+
+  .acceso__caja {
+    padding: 1.25rem;
+  }
+
+  .auth-brand {
+    min-height: 100px;
+  }
+
+  .auth-logo {
+    max-height: 80px;
+  }
+
+  .auth-card {
+    padding: 1.25rem !important;
+    min-height: auto;
+  }
+
+  .auth-form {
+    gap: 0.75rem;
+  }
+
+  .hud {
+    padding: 1rem;
+  }
+
+  .panel-estadistica {
+    padding: 0.75rem 1rem;
+  }
+
+  .panel-estadistica .valor {
+    font-size: 1.5rem;
+  }
+}
+
+/* High DPI displays */
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+  .btn,
+  .entrada,
+  .tarjeta,
+  .panel-estatistica,
+  .modal {
+    border-width: 1px;
+  }
+
+  :root {
+    --grosor: 1px;
+  }
+}
+
+/* Print styles */
+@media print {
+  .header,
+  .sidebar,
+  .btn,
+  .filtros,
+  .auth-video,
+  .auth-overlay,
+  .modal-fondo {
+    display: none !important;
+  }
+
+  .layout,
+  .cuerpo,
+  .contenido {
+    display: block;
+    min-height: auto;
+    padding: 0;
+  }
+
+  .tarjeta {
+    box-shadow: none;
+    border: 1px solid #000;
+    break-inside: avoid;
+  }
+
+  body {
+    background: white;
+    color: black;
+    font-size: 12pt;
+  }
+
+  a {
+    text-decoration: none;
+    color: black;
+  }
+}
+
+/* Focus visible for keyboard navigation */
+:focus-visible {
+  outline: 3px solid var(--cian);
+  outline-offset: 2px;
+}
+
+/* Skip link for accessibility */
+.skip-link {
+  position: absolute;
+  top: -100%;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--negro);
+  color: var(--blanco);
+  padding: 0.75rem 1.5rem;
+  border-radius: var(--radio);
+  font-weight: 700;
+  z-index: 100;
+  text-decoration: none;
+}
+
+.skip-link:focus {
+  top: 1rem;
+}

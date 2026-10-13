@@ -1,0 +1,105 @@
+@if (!cargando()) {
+  <div class="perfil-container">
+    <app-alerta [mensaje]="error()" tipo="error" (cerrado)="error.set('')" />
+
+    @if (perfil(); as p) {
+      <header class="perfil-header">
+        <div class="avatar-grande">
+          @if (p.imagenUsuario) {
+            <img [src]="p.imagenUsuario | imagenUrl" [alt]="nombreCompleto" appImagenRota />
+          } @else {
+            <img src="/IconoDefaultUsuarioEcoCampus.png" [alt]="nombreCompleto" appImagenRota />
+          }
+        </div>
+        <div class="perfil-titulo">
+          <h1>{{ nombreCompleto }}</h1>
+          <p class="alias">@{{ p.alias }}</p>
+          @if (p.carrera || p.nivelCarrera || p.centroEstudios) {
+            <p class="carrera">
+              {{ [p.carrera, p.nivelCarrera, p.centroEstudios].filter((x) => x).join(' • ') }}
+            </p>
+          }
+        </div>
+      </header>
+
+      <section class="perfil-stats" aria-label="Estadísticas">
+        <div class="stats-grid">
+          <div class="stat">
+            <span class="stat-valor">{{ p.puntos }}</span>
+            <span class="stat-label">Puntos</span>
+          </div>
+          <div class="stat">
+            <span class="stat-valor">{{ p.nivel }}</span>
+            <span class="stat-label">Nivel</span>
+          </div>
+          <div class="stat">
+            <span class="stat-valor">{{ p.retosCumplidos }}</span>
+            <span class="stat-label">Retos cumplidos</span>
+          </div>
+          @if (p.rol) {
+            <div class="stat stat-rol">
+              <app-insignia [valor]="p.rol" />
+            </div>
+          }
+        </div>
+      </section>
+
+      @if (p.gustos?.length) {
+        <section class="perfil-gustos" aria-label="Gustos">
+          <h2>Intereses</h2>
+          <div class="chips">
+            @for (gusto of p.gustos; track gusto.idGusto) {
+              <span class="chip chip--solo-lectura">{{ gusto.nombreGusto }}</span>
+            }
+          </div>
+        </section>
+      }
+
+      <section class="perfil-evidencias" aria-label="Últimas participaciones">
+        <h2>Actividad reciente</h2>
+        @if (retosRecientes().length) {
+          <div class="retos-recientes">
+            @for (reto of retosRecientes(); track reto.idReto) {
+              <article class="reto-reciente">
+                @if (reto.imagenReto) {
+                  <img
+                    [src]="reto.imagenReto | imagenUrl"
+                    [alt]="reto.nombreReto"
+                    class="reto-reciente__imagen"
+                    appImagenRota
+                  />
+                } @else {
+                  <div class="reto-reciente__icono" aria-hidden="true">
+                    {{ reto.nombreReto.charAt(0) }}
+                  </div>
+                }
+                <div class="reto-reciente__info">
+                  <h3>{{ reto.nombreReto }}</h3>
+                  <p class="chico tenue">{{ reto.descripcionReto }}</p>
+                  <div class="reto-reciente__meta">
+                    <span class="insignia insignia--neutra">{{ reto.categoria }}</span>
+                    <span class="puntos">
+                      <span class="numero">{{ reto.puntosCompletado }}</span>
+                      <span class="unidad">pts</span>
+                    </span>
+                  </div>
+                </div>
+                <a
+                  [routerLink]="['/retos', reto.idReto]"
+                  class="btn btn--secundario btn--chico reto-reciente__btn"
+                  >Ver reto</a
+                >
+              </article>
+            }
+          </div>
+        } @else {
+          <p class="vacio">Este usuario aún no tiene retos aprobados públicos.</p>
+        }
+      </section>
+    } @else {
+      <p class="vacio">Usuario no encontrado.</p>
+    }
+  </div>
+} @else {
+  <app-loader texto="Cargando perfil..." />
+}

@@ -1,0 +1,318 @@
+/* ------------------------------------------------------------
+   Navegación lateral: barra fija en escritorio y cajón en móvil
+   ------------------------------------------------------------ */
+.sidebar {
+  width: 264px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  background: var(--negro);
+  color: var(--blanco);
+  border-right: var(--grosor) solid var(--negro);
+  overflow: hidden;
+  transition:
+    transform var(--veloz),
+    visibility var(--veloz);
+}
+
+/* Cabecera del cajón (marca + cerrar): solo en móvil/tablet */
+.sidebar-top {
+  display: none;
+}
+
+.sidebar-scroll {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  padding: 1rem 0.75rem;
+  scrollbar-width: thin;
+  scrollbar-color: #2b2b2b transparent;
+}
+
+.sidebar-scroll::-webkit-scrollbar {
+  width: 6px;
+}
+
+.sidebar-scroll::-webkit-scrollbar-thumb {
+  background: #2b2b2b;
+  border-radius: 999px;
+}
+
+.sidebar a {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  padding: 0.6rem 0.8rem;
+  border-radius: var(--radio-chico);
+  color: var(--blanco);
+  text-decoration: none;
+  font-size: 0.9rem;
+  font-weight: 600;
+  line-height: 1.25;
+  transition:
+    background var(--veloz),
+    color var(--veloz),
+    transform var(--veloz),
+    box-shadow var(--veloz);
+}
+
+.sidebar .icono {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  opacity: 0.8;
+  transition:
+    opacity var(--veloz),
+    color var(--veloz);
+}
+
+.sidebar .etiqueta {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sidebar a:hover {
+  background: #171717;
+  transform: translateX(3px);
+}
+
+.sidebar a:hover .icono {
+  opacity: 1;
+  color: var(--cian);
+}
+
+.sidebar a:focus-visible {
+  background: #171717;
+}
+
+.sidebar a.activo {
+  background: var(--verde);
+  color: var(--negro);
+  font-weight: 800;
+  box-shadow: 0 6px 18px rgba(28, 229, 46, 0.28);
+}
+
+.sidebar a.activo .icono {
+  opacity: 1;
+}
+
+.sidebar a.activo:hover {
+  background: var(--verde);
+  color: var(--negro);
+}
+
+.grupo {
+  display: block;
+  margin: 1.1rem 0 0.4rem;
+  padding: 0 0.8rem;
+  font-size: 0.62rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: var(--borde-fuerte);
+}
+
+/* Pie del sidebar con la salida de la sesión */
+.sidebar-footer {
+  padding: 0.9rem 0.75rem;
+  border-top: 1px solid #1e1e1e;
+}
+
+.sidebar-footer .btn {
+  display: inline-flex;
+  width: 100%;
+  justify-content: center;
+  box-shadow: 3px 3px 0 var(--verde);
+}
+
+.sidebar-footer .btn:hover:not(:disabled) {
+  box-shadow: 5px 5px 0 var(--verde);
+}
+
+/* ------------------------------------------------------------
+   Tablet y móvil (≤900px): cajón deslizante con overlay
+   ------------------------------------------------------------ */
+@media (max-width: 900px) {
+  .sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: min(320px, 86vw);
+    height: 100dvh;
+    z-index: 40;
+    border-right: none;
+    transform: translateX(-105%);
+    visibility: hidden;
+    transition:
+      transform 0.24s ease,
+      visibility 0.24s ease;
+    box-shadow: var(--sombra-alta);
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+
+  .sidebar.abierto {
+    transform: translateX(0);
+    visibility: visible;
+  }
+
+  .sidebar-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    padding: 0.8rem 0.75rem 0.8rem 1rem;
+    border-bottom: 1px solid #1e1e1e;
+  }
+
+  .sidebar-marca {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.95rem;
+    font-weight: 900;
+    letter-spacing: -0.02em;
+  }
+
+  .sidebar-marca span {
+    filter: drop-shadow(0 0 6px rgba(0, 255, 136, 0.3));
+    -webkit-text-stroke: 0.2px var(--verde);
+  }
+
+  .sidebar-marca img {
+    width: 30px;
+    height: 30px;
+    object-fit: contain;
+    background: var(--blanco);
+    border-radius: 9px;
+    padding: 3px;
+  }
+
+  .sidebar-cerrar {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    padding: 0;
+    background: transparent;
+    border: 2px solid var(--blanco);
+    border-radius: 8px;
+    color: var(--blanco);
+    cursor: pointer;
+    transition:
+      background var(--veloz),
+      color var(--veloz);
+  }
+
+  .sidebar-cerrar svg {
+    width: 20px;
+    height: 20px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2.4;
+    stroke-linecap: round;
+  }
+
+  .sidebar-cerrar:hover {
+    background: var(--blanco);
+    color: var(--negro);
+  }
+
+  .sidebar-scroll {
+    padding: 0.75rem;
+  }
+
+  .sidebar .grupo {
+    color: var(--cian);
+    margin-top: 0.85rem;
+  }
+
+  /* Objetivos táctiles cómodos (mín. 46px) */
+  .sidebar a {
+    padding: 0.7rem 0.85rem;
+    font-size: 0.98rem;
+    min-height: 46px;
+    border-radius: 12px;
+  }
+
+  .sidebar .icono {
+    width: 20px;
+    height: 20px;
+    opacity: 0.9;
+  }
+
+  /* En táctil no hay :hover persistente, se usa :active como feedback */
+  .sidebar a:hover {
+    transform: none;
+    background: #171717;
+    color: var(--blanco);
+  }
+
+  .sidebar a:active {
+    background: #1f1f1f;
+  }
+
+  .sidebar a.activo,
+  .sidebar a.activo:hover {
+    background: var(--verde);
+    color: var(--negro);
+  }
+
+  .sidebar-footer {
+    padding-top: 1rem;
+  }
+}
+
+/* Móvil (≤480px) */
+@media (max-width: 480px) {
+  .sidebar {
+    width: 88vw;
+  }
+
+  .sidebar-top {
+    padding: 0.7rem 0.65rem 0.7rem 0.85rem;
+  }
+
+  .sidebar a {
+    font-size: 0.95rem;
+  }
+}
+
+/* Móvil en horizontal (pantallas bajas) */
+@media (max-height: 500px) and (orientation: landscape) {
+  .sidebar-top {
+    padding: 0.5rem 0.75rem;
+  }
+
+  .sidebar-marca img {
+    width: 26px;
+    height: 26px;
+  }
+
+  .sidebar-scroll {
+    padding: 0.5rem 0.75rem;
+  }
+
+  .sidebar a {
+    padding-top: 0.45rem;
+    padding-bottom: 0.45rem;
+    min-height: 40px;
+  }
+
+  .grupo {
+    margin-top: 0.6rem;
+  }
+}

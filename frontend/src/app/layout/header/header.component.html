@@ -1,0 +1,42 @@
+<header class="header">
+  @if (auth.autenticado()) {
+    <button
+      type="button"
+      class="menu-toggle"
+      (click)="emitirToggleMenu()"
+      aria-label="Abrir menú"
+      aria-expanded="false"
+    >
+      <span class="menu-toggle__barra" aria-hidden="true"></span>
+      <span class="menu-toggle__barra" aria-hidden="true"></span>
+      <span class="menu-toggle__barra" aria-hidden="true"></span>
+    </button>
+  }
+  <div class="sesion">
+    @if (puntos() !== null) {
+      <span class="identidad">
+        <span class="alias">{{ auth.alias() }}</span>
+      </span>
+
+      <span class="stat stat--cian" title="Nivel actual">
+        <span class="stat__rotulo">NV</span>
+        {{ nivel() }}
+      </span>
+      <span class="stat stat--oro" title="Puntos acumulados">
+        <span class="stat__rotulo">PTS</span>
+        {{ puntos() }}
+      </span>
+      @if (auth.autenticado()) {
+    <button type="button" class="salir" (click)="cerrarSesion()">Salir</button>
+  }
+    }
+
+  </div>
+
+  <a routerLink="/inicio" class="marca">
+    <span>EcoReto Campus</span>
+    <img [src]="logo" alt="" width="36" height="36" />
+  </a>
+
+  
+</header>

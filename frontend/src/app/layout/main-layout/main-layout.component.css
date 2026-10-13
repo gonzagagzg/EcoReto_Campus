@@ -1,0 +1,75 @@
+.layout {
+  display: flex;
+  flex-direction: column;
+  min-height: 100dvh;
+}
+
+.cuerpo {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+  position: relative;
+  background: var(--fondo);
+}
+
+/* Watermark: imagen PNG centrada al 50% opacidad sobre el fondo */
+/* Watermark: imagen PNG centrada al 30% opacidad - DETRÁS del contenido */
+.cuerpo.watermark::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image: url('/EcoRetoCampustitulo.png');
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: 50%;
+  opacity: 0.3;
+  pointer-events: none;
+  z-index: 0; /* Debajo del contenido */
+}
+
+/* Ajuste móvil: más pequeño y menos opaco */
+@media (max-width: 768px) {
+  .cuerpo.watermark::before {
+    background-size: 70%;
+    opacity: 0.2;
+  }
+}
+
+.contenido {
+  flex: 1;
+  padding: 1.5rem;
+  overflow-y: auto;
+  min-width: 0;
+
+  position: relative;
+  z-index: 1; /* Sobre el watermark */
+}
+
+/* Mobile sidebar overlay */
+.sidebar-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 30;
+}
+
+@media (max-width: 900px) {
+  .cuerpo {
+    flex-direction: column;
+  }
+
+  .sidebar-overlay {
+    display: block;
+  }
+
+  .contenido {
+    padding: 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .contenido {
+    padding: 0.75rem;
+  }
+}

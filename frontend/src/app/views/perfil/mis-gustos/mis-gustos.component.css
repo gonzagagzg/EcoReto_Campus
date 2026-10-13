@@ -1,0 +1,150 @@
+.gustos {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(195px, 1fr));
+  gap: 0.85rem;
+}
+
+.gusto {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  padding: 0.7rem 0.75rem;
+  background: var(--superficie);
+  border: var(--grosor) solid var(--borde-fuerte);
+  border-radius: var(--radio-chico);
+  cursor: pointer;
+  text-align: left;
+  font-weight: 700;
+  transition:
+    border-color var(--veloz),
+    transform var(--veloz),
+    box-shadow var(--veloz);
+}
+
+.gusto:hover {
+  border-color: var(--verde);
+  transform: translateY(-2px);
+}
+
+.gusto--activo {
+  background: var(--verde-suave);
+  border-color: var(--negro);
+  box-shadow: 3px 3px 0 var(--negro);
+}
+
+.gusto__icono {
+  position: relative;
+  width: 38px;
+  height: 38px;
+  flex-shrink: 0;
+  border-radius: 10px;
+  border: var(--grosor) solid var(--negro);
+  overflow: hidden;
+  background: var(--verde-lit);
+}
+
+.gusto__inicial,
+.gusto__imagen {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.gusto__inicial {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 900;
+  font-size: 1.1rem;
+}
+
+.gusto__nombre {
+  flex: 1;
+  font-size: 0.9rem;
+  line-height: 1.25;
+}
+
+.gusto__marca {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 26px;
+  height: 22px;
+  padding: 0 0.35rem;
+  border-radius: 999px;
+  background: var(--blanco);
+  border: 2px solid var(--borde-fuerte);
+  font-size: 0.62rem;
+  font-weight: 900;
+}
+
+.gusto--activo .gusto__marca {
+  background: var(--negro);
+  color: var(--blanco);
+  border-color: var(--negro);
+}
+
+.guardar {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+@media (max-width: 640px) {
+  .gustos {
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 0.6rem;
+  }
+
+  .gusto {
+    padding: 0.6rem 0.65rem;
+    gap: 0.5rem;
+  }
+
+  .gusto__icono {
+    width: 34px;
+    height: 34px;
+  }
+
+  .gusto__inicial {
+    font-size: 1rem;
+  }
+
+  .gusto__nombre {
+    font-size: 0.8rem;
+  }
+
+  .gusto__marca {
+    min-width: 22px;
+    height: 20px;
+    font-size: 0.55rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .gustos {
+    grid-template-columns: 1fr 1fr;
+    gap: 0.5rem;
+  }
+
+  .gusto {
+    padding: 0.5rem 0.55rem;
+  }
+
+  .gusto__icono {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+  }
+
+  .gusto__inicial {
+    font-size: 0.9rem;
+  }
+
+  .gusto__nombre {
+    font-size: 0.75rem;
+  }
+}

@@ -1,0 +1,82 @@
+<div class="chatbot">
+  @if (abierto()) {
+    <section class="chatbot-panel" aria-label="Chat con ECOCIA, asistente de EcoReto">
+      <header class="chatbot-cabecera">
+        <img [src]="logo" alt="" class="chatbot-logo" aria-hidden="true" />
+        <div class="chatbot-titulo">
+          <strong>ECOCIA</strong>
+          <span class="chatbot-estado" [class.chatbot-estado--off]="!puedePreguntar()">
+            <span class="punto" aria-hidden="true"></span>
+            {{ puedePreguntar() ? 'En línea' : 'No disponible' }}
+          </span>
+        </div>
+        <button type="button" class="chatbot-cerrar" (click)="alternar()" aria-label="Cerrar chat">
+          ✕
+        </button>
+      </header>
+
+      <div #listaMensajes class="chatbot-mensajes" aria-live="polite">
+        @for (mensaje of mensajes(); track $index) {
+          <p class="mensaje" [class.mensaje--yo]="mensaje.origen === 'yo'">
+            {{ mensaje.texto }}
+          </p>
+        }
+        @if (enviando()) {
+          <p class="mensaje mensaje--escribiendo" aria-label="ECOCIA está escribiendo">
+            <span></span><span></span><span></span>
+          </p>
+        }
+      </div>
+
+      @if (aviso()) {
+        <p class="chatbot-aviso" role="status">{{ aviso() }}</p>
+      }
+
+      @if (mensajes().length <= 2 && puedePreguntar()) {
+        <div class="chatbot-sugerencias">
+          @for (sugerencia of sugerencias; track sugerencia) {
+            <button type="button" class="sugerencia" (click)="usarSugerencia(sugerencia)">
+              {{ sugerencia }}
+            </button>
+          }
+        </div>
+      }
+
+      <form class="chatbot-form" (ngSubmit)="enviar()">
+        <label class="oculto" for="chatbot-pregunta">Escribe tu pregunta</label>
+        <input
+          id="chatbot-pregunta"
+          name="pregunta"
+          class="chatbot-entrada"
+          [(ngModel)]="pregunta"
+          placeholder="Pregunta sobre tus retos, puntos…"
+          autocomplete="chat"
+          maxlength="1000"
+          [disabled]="!puedePreguntar() || enviando()"
+        />
+        <button
+          type="submit"
+          class="chatbot-enviar"
+          aria-label="Enviar pregunta"
+          [disabled]="!puedePreguntar() || enviando() || pregunta.trim().length < 3"
+        >
+          ➤
+        </button>
+      </form>
+    </section>
+  }
+
+  <button
+    type="button"
+    class="chatbot-burbuja"
+    (click)="alternar()"
+    [attr.aria-expanded]="abierto()"
+    [attr.aria-label]="abierto() ? 'Cerrar asistente ECOCIA' : 'Abrir asistente ECOCIA'"
+  >
+    @if (abierto()) {
+      <span aria-hidden="true">✕</span>
+    } @else {
+      <img [src]="logo" alt="" aria-hidden="true" />
+    }
+  </button>
+</div>

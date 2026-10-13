@@ -1,0 +1,71 @@
+@if (cargando()) {
+  <app-loader texto="Cargando tus intereses..." />
+} @else {
+  <div class="apilar">
+    <a routerLink="/perfil/ver" class="volver">&larr; Volver a mi perfil</a>
+
+    <div class="seccion-titulo">
+      <div>
+        <h1>Mis gustos</h1>
+        <p class="tenue chico">
+          Marcá lo que te interesa. Con eso te recomendamos retos y los usamos para medir el impacto
+          del campus.
+        </p>
+      </div>
+      <span class="insignia insignia--verde">{{ cantidad }} elegidos</span>
+    </div>
+
+    <app-alerta [mensaje]="error()" tipo="error" />
+    <app-alerta [mensaje]="exito()" tipo="ok" />
+
+    @if (catalogo().length === 0) {
+      <div class="vacio">
+        <span class="vacio__icono" aria-hidden="true">!</span>
+        <p><strong>No hay intereses disponibles todavía</strong></p>
+        <p class="chico">Pronto vas a poder elegirlos acá.</p>
+      </div>
+    } @else {
+      <div class="gustos">
+        @for (gusto of catalogo(); track gusto.idGusto) {
+          <button
+            type="button"
+            class="gusto"
+            [class.gusto--activo]="seleccion().has(gusto.idGusto)"
+            [attr.aria-pressed]="seleccion().has(gusto.idGusto)"
+            (click)="alternar(gusto.idGusto)"
+          >
+            <span class="gusto__icono" aria-hidden="true">
+              <span class="gusto__inicial">{{ gusto.nombreGusto.charAt(0) }}</span>
+              @if (gusto.imagenGusto) {
+                <img
+                  class="gusto__imagen"
+                  [src]="gusto.imagenGusto | imagenUrl"
+                  alt=""
+                  appImagenRota
+                />
+              }
+            </span>
+
+            <span class="gusto__nombre">{{ gusto.nombreGusto }}</span>
+
+            <span class="gusto__marca" aria-hidden="true">
+              {{ seleccion().has(gusto.idGusto) ? 'OK' : '+' }}
+            </span>
+          </button>
+        }
+      </div>
+
+      <div class="guardar">
+        <button
+          type="button"
+          class="btn btn--primario"
+          [disabled]="procesando() || sinCambios"
+          (click)="guardar()"
+        >
+          {{ procesando() ? 'Guardando...' : 'Guardar cambios' }}
+        </button>
+        <a class="btn btn--fantasma" routerLink="/perfil/ver">Cancelar</a>
+      </div>
+    }
+  </div>
+}
