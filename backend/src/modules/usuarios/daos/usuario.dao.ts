@@ -147,6 +147,7 @@ export class UsuarioDao implements UsuarioDaoInterface {
   ): Promise<void> {
     await this.usuarioRepo.update(idUsuario, {
       puntos: Math.max(0, progreso.puntos),
+      historialPuntos: Math.max(0, progreso.historialPuntos),
       retosCumplidos: Math.max(0, progreso.retosCumplidos),
       nivel: Math.max(0, progreso.nivel),
     });

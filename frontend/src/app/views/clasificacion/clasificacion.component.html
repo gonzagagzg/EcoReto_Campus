@@ -1,0 +1,59 @@
+<div class="clasificacion-container">
+  <header class="page-header">
+    <h1>Clasificación</h1>
+    <p>Top estudiantes por puntos históricos</p>
+  </header>
+
+  <app-alerta *ngIf="error()" tipo="error" [mensaje]="error()" (cerrado)="error.set('')" />
+
+  <app-alerta
+    *ngIf="!cargando() && items().length === 0"
+    tipo="info"
+    mensaje="No hay estudiantes registrados aún."
+  />
+
+  @if (cargando()) {
+    <app-loader texto="Cargando clasificación..." />
+  } @else {
+    <ol class="ranking" role="list" aria-label="Ranking de estudiantes">
+      @for (usuario of items(); track usuario.idUsuario; let i = $index) {
+        <li class="ranking-item" [class.top3]="i < 3">
+          <div class="ranking-posicion">
+            <span class="numero">{{ i + 1 }}</span>
+            @if (i === 0) {
+              <span class="medalla" aria-label="Primero">🥇</span>
+            } @else if (i === 1) {
+              <span class="medalla" aria-label="Segundo">🥈</span>
+            } @else if (i === 2) {
+              <span class="medalla" aria-label="Tercero">🥉</span>
+            }
+          </div>
+
+          <a [routerLink]="['/perfil', usuario.idUsuario]" class="ranking-usuario">
+            <div class="avatar">
+              @if (usuario.imagenUsuario) {
+                <img
+                  [src]="usuario.imagenUsuario | imagenUrl"
+                  [alt]="nombreCompleto(usuario)"
+                  appImagenRota
+                />
+              } @else {
+                <img src="/IconoDefaultUsuarioEcoCampus.png" [alt]="nombreCompleto(usuario)" appImagenRota />
+              }
+            </div>
+            <div class="usuario-info">
+              <div class="usuario-nombre">{{ nombreCompleto(usuario) }}</div>
+              <div class="usuario-alias">@{{ usuario.alias }}</div>
+              <div class="usuario-carrera">{{ carreraInfo(usuario) }}</div>
+            </div>
+          </a>
+
+          <div class="ranking-puntos">
+            <span class="puntos-valor">{{ usuario.historialPuntos }}</span>
+            <span class="puntos-label">pts</span>
+          </div>
+        </li>
+      }
+    </ol>
+  }
+</div>

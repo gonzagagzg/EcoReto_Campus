@@ -1,0 +1,242 @@
+<div class="apilar">
+  <div class="seccion-titulo">
+    <div>
+      <h1>Gestionar gustos</h1>
+      <p class="tenue chico">Catálogo de intereses disponibles para los estudiantes.</p>
+    </div>
+    <button type="button" class="btn btn--primario btn--chico" (click)="abrirAlta()">
+      Nuevo gusto
+    </button>
+  </div>
+
+  <app-alerta [mensaje]="error()" tipo="error" />
+  <app-alerta [mensaje]="exito()" tipo="ok" />
+
+  <section class="tarjeta tarjeta--plana">
+    <form class="filtros" (ngSubmit)="buscar()">
+      <div class="campo">
+        <label for="q">Buscar</label>
+        <input
+          id="q"
+          name="busqueda"
+          class="entrada"
+          placeholder="Nombre del gusto"
+          [(ngModel)]="busqueda"
+        />
+      </div>
+
+      <div class="campo">
+        <label for="estado">Estado</label>
+        <select id="estado" name="estado" class="entrada" [(ngModel)]="estadoFiltro">
+          <option value="">Todos</option>
+          <option [value]="EstadoGusto.Activo">Activo</option>
+          <option [value]="EstadoGusto.Desactivo">Desactivo</option>
+        </select>
+      </div>
+
+      <div class="filtros__botones">
+        <button type="submit" class="btn btn--primario">Buscar</button>
+        <button type="button" class="btn btn--fantasma" (click)="limpiar()">Limpiar</button>
+      </div>
+    </form>
+  </section>
+
+  @if (cargando()) {
+    <app-loader texto="Cargando gustos..." />
+  } @else if (items().length === 0) {
+    <div class="vacio">
+      <span class="vacio__icono" aria-hidden="true">?</span>
+      <p><strong>No hay gustos</strong></p>
+      <p class="chico">Creá el primero con el botón de arriba.</p>
+    </div>
+  } @else {
+    <div class="tabla-envoltorio">
+      <table class="tabla tabla--tarjetas">
+        <thead>
+          <tr>
+            <th>Gusto</th>
+            <th>Imagen</th>
+            <th>Estado</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (gusto of items(); track gusto.idGusto) {
+            <tr>
+              <td data-label="Gusto">
+                <strong>{{ gusto.nombreGusto }}</strong>
+              </td>
+              <td data-label="Imagen">
+                @if (gusto.imagenGusto) {
+                  <img
+                    [src]="gusto.imagenGusto | imagenUrl"
+                    alt=""
+                    class="tabla-imagen"
+                    appImagenRota
+                  />
+                } @else {
+                  <span class="tenue">Sin imagen</span>
+                }
+              </td>
+              <td data-label="Estado"><app-insignia [valor]="gusto.estado" /></td>
+              <td data-label="Acciones">
+                <div class="acciones">
+                  <button
+                    type="button"
+                    class="btn btn--cian btn--chico"
+                    (click)="abrirEdicion(gusto)"
+                  >
+                    Editar
+                  </button>
+                  @if (gusto.estado === EstadoGusto.Desactivo) {
+                    <button
+                      type="button"
+                      class="btn btn--primario btn--chico"
+                      [disabled]="procesando()"
+                      (click)="restaurar(gusto)"
+                    >
+                      Restaurar
+                    </button>
+                  } @else {
+                    <button
+                      type="button"
+                      class="btn btn--peligro btn--chico"
+                      [disabled]="procesando()"
+                      (click)="porEliminar.set(gusto)"
+                    >
+                      Eliminar
+                    </button>
+                  }
+                </div>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+
+    <app-paginacion
+      [pagina]="pagina"
+      [limite]="limite"
+      [total]="total()"
+      (cambio)="cambiarPagina($event)"
+    />
+  }
+
+  @if (formAbierto()) {
+    <div class="modal-fondo" (click)="cerrarFormulario()">
+      <div
+        class="modal modal--ancho"
+        role="dialog"
+        aria-modal="true"
+        [attr.aria-label]="editando ? 'Editar gusto' : 'Nuevo gusto'"
+        (click)="$event.stopPropagation()"
+      >
+        <h3>{{ editando ? 'Editar gusto' : 'Nuevo gusto' }}</h3>
+
+        <div class="campo">
+          <label for="g-nombre">Nombre</label>
+          <input
+            id="g-nombre"
+            name="nombreGusto"
+            class="entrada"
+            maxlength="100"
+            [(ngModel)]="form.nombreGusto"
+          />
+        </div>
+
+        <div class="campo">
+          <label for="g-imagen">Imagen del gusto</label>
+          <div class="fila" style="gap: 0.5rem; align-items: center">
+            <input
+              type="file"
+              id="g-imagen"
+              accept=".jpg,.jpeg,.png,.webp"
+              (change)="onImagenSeleccionada($event)"
+              [disabled]="subiendoImagen()"
+              style="flex: 1"
+            />
+            @if (imagenSeleccionada) {
+              <span class="chico tenue"
+                >{{ imagenSeleccionada.name }} ({{
+                  (imagenSeleccionada.size / 1024).toFixed(1)
+                }}
+                KB)</span
+              >
+              <button type="button" class="btn btn--fantasma btn--chico" (click)="quitarImagen()">
+                Quitar
+              </button>
+            }
+          </div>
+        </div>
+
+        @if (vistaPreviaImagen) {
+          <div class="campo">
+            <label>Vista previa</label>
+            <img
+              [src]="vistaPreviaImagen"
+              alt="Vista previa"
+              class="vista-previa-imagen"
+              appImagenRota
+            />
+          </div>
+        }
+
+        @if (editando?.imagenGusto && !imagenSeleccionada) {
+          <div class="campo">
+            <label>Imagen actual</label>
+            <div class="fila" style="gap: 0.5rem; align-items: center">
+              <img
+                [src]="editando.imagenGusto | imagenUrl"
+                alt=""
+                class="tabla-imagen"
+                appImagenRota
+              />
+              <button
+                type="button"
+                class="btn btn--peligro btn--chico"
+                (click)="eliminarImagenGusto(editando!)"
+              >
+                Eliminar imagen
+              </button>
+            </div>
+          </div>
+        }
+
+        <div class="fila fila--fin">
+          <button type="button" class="btn btn--fantasma" (click)="cerrarFormulario()">
+            Cancelar
+          </button>
+          <button
+            type="button"
+            class="btn btn--primario"
+            [disabled]="procesando() || subiendoImagen()"
+            (click)="guardar()"
+          >
+            @if (procesando()) {
+              Guardando...
+            } @else if (subiendoImagen()) {
+              Subiendo imagen...
+            } @else {
+              Guardar
+            }
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+
+  @if (porEliminar(); as gusto) {
+    <app-modal-confirmacion
+      titulo="Desactivar gusto"
+      [mensaje]="
+        'Se dará de baja «' +
+        gusto.nombreGusto +
+        '» del catálogo. Los estudiantes que lo tengan seleccionado lo conservarán.'
+      "
+      textoConfirmar="Desactivar"
+      (confirmar)="confirmarEliminacion()"
+      (cancelar)="cancelarEliminacion()"
+    />
+  }
+</div>

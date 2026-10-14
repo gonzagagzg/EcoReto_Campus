@@ -10,12 +10,14 @@ import { UsuarioQueryDto } from '../../usuarios/dto/usuario-query.dto';
 import { Rol, type Usuario } from '../../usuarios/entities/usuario.entity';
 import { UsuariosService, type Solicitud } from '../../usuarios/services/usuarios.service';
 import {
+  type HistorialPremioAdmin,
   type ParticipacionHistorial,
   type ResumenAdmin,
   AdminDao,
 } from '../daos/admin.dao';
 import { CambiarRolDto } from '../dto/cambiar-rol.dto';
 import { EstadoUsuarioAdminDto } from '../dto/estado-usuario-admin.dto';
+import { ActualizarUsuarioDto } from '../../usuarios/dto/actualizar-usuario.dto';
 
 @Injectable()
 export class AdminService {
@@ -75,5 +77,29 @@ export class AdminService {
 
   rolesDisponibles(): Rol[] {
     return Object.values(Rol);
+  }
+
+  async actualizarUsuario(
+    idUsuario: number,
+    dto: ActualizarUsuarioDto,
+  ): Promise<Usuario> {
+    return this.usuariosService.actualizar(idUsuario, dto);
+  }
+
+  async listarHistorialPremios(
+    pagina: number,
+    limite: number,
+    busqueda?: string,
+    estadoCanjePremio?: string,
+  ): Promise<{ items: HistorialPremioAdmin[]; total: number }> {
+    return this.adminDao.listarHistorialPremios(pagina, limite, busqueda, estadoCanjePremio);
+  }
+
+  async actualizarEstadoCanjePremio(
+    idHistorialPremio: number,
+    estadoCanjePremio: string,
+    observacionCanje?: string,
+  ): Promise<void> {
+    return this.adminDao.actualizarEstadoCanjePremio(idHistorialPremio, estadoCanjePremio, observacionCanje);
   }
 }

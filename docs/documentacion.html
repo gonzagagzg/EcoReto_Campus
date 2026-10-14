@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EcoReto Campus — Documentación Técnica</title>
+<style>
+  * { box-sizing: border-box; }
+  body { font-family: Arial, Helvetica, sans-serif; line-height: 1.6; margin: 0; background: #f4f6f4; color: #222; }
+  header { background: #1b7a3d; color: #fff; padding: 2rem 1.5rem; }
+  header h1 { margin: 0 0 .3rem; }
+  header p { margin: 0; opacity: .9; }
+  nav { background: #145c2e; padding: .6rem 1.5rem; position: sticky; top: 0; }
+  nav a { color: #fff; margin-right: 1rem; text-decoration: none; font-size: .9rem; }
+  nav a:hover { text-decoration: underline; }
+  main { max-width: 960px; margin: 0 auto; padding: 1.5rem; }
+  section { background: #fff; border: 1px solid #ddd; border-radius: 8px; padding: 1.5rem; margin-bottom: 1.5rem; }
+  h2 { color: #1b7a3d; border-bottom: 2px solid #1b7a3d; padding-bottom: .3rem; }
+  h3 { color: #145c2e; }
+  table { width: 100%; border-collapse: collapse; margin: 1rem 0; }
+  th, td { border: 1px solid #ccc; padding: .5rem; text-align: left; font-size: .92rem; }
+  th { background: #e8f3ec; }
+  code { background: #eef1ee; padding: .1rem .35rem; border-radius: 4px; font-size: .9rem; }
+  pre { background: #1e1e1e; color: #d7f0dd; padding: 1rem; border-radius: 8px; overflow-x: auto; font-size: .85rem; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem; }
+  .card { border: 1px solid #ddd; border-radius: 8px; padding: 1rem; background: #fafcfa; }
+  .cap { border: 2px dashed #9dbfa9; border-radius: 8px; padding: 1rem; text-align: center; background: #f6faf7; margin-bottom: 1rem; }
+  footer { text-align: center; padding: 1.5rem; color: #666; font-size: .85rem; }
+</style>
+</head>
+<body>
+<header>
+  <h1>EcoReto Campus — Documentación Técnica</h1>
+  <p>Plataforma web + móvil para gamificar retos ecológicos: retos, evidencias, puntos, niveles, premios y revisión por roles.</p>
+</header>
+<nav>
+  <a href="#tecnologias">5. Tecnologías</a>
+  <a href="#angular">6. Angular</a>
+  <a href="#arquitectura">7. Arquitectura</a>
+  <a href="#componentes">8. Componentes</a>
+  <a href="#crud">9. CRUD</a>
+  <a href="#validaciones">10. Validaciones</a>
+  <a href="#reglas">11. Reglas de negocio</a>
+  <a href="#capturas">12. Capturas</a>
+  <a href="#pruebas">13. Pruebas</a>
+  <a href="#conclusiones">14. Conclusiones</a>
+  <a href="#recomendaciones">15. Recomendaciones</a>
+</nav>
+<main>
+
+<section id="tecnologias">
+  <h2>5. Tecnologías utilizadas</h2>
+  <div class="grid">
+    <div class="card"><h3>Backend (backend/)</h3><ul>
+      <li>Node.js 24 + npm 11</li>
+      <li>NestJS 12 + TypeScript 6</li>
+      <li>PostgreSQL 15+ + TypeORM 1 + pg</li>
+      <li>Auth JWT access + refresh (<code>@nestjs/jwt</code>, <code>bcrypt</code>)</li>
+      <li><code>class-validator</code> / <code>class-transformer</code></li>
+      <li>Subida local con Multer/Express (<code>/uploads</code>)</li>
+      <li>Tareas programadas (<code>@nestjs/schedule</code>)</li>
+      <li>Jest 30 + Supertest, oxlint, Prettier</li>
+    </ul></div>
+    <div class="card"><h3>Frontend (frontend/)</h3><ul>
+      <li>Angular 22 standalone + TypeScript 6</li>
+      <li>Capacitor 8 (core, android, ios, camera, filesystem, network)</li>
+      <li>RxJS 7, Angular Router, Forms</li>
+      <li><code>scripts/load-env.mjs</code> genera <code>environment.ts</code> + <code>public/config.json</code></li>
+      <li>Vitest 5 + jsdom, Prettier</li>
+    </ul></div>
+    <div class="card"><h3>Base de datos</h3><ul>
+      <li>PostgreSQL, script <code>database/ScriptEcoRetoBD.sql</code></li>
+      <li>ENUMs: <code>rol_enum</code>, <code>estado_reto_enum</code>, <code>estado_evaluacion_enum</code>, <code>categoria_reto_enum</code>, etc.</li>
+      <li>Tablas: <code>usuarios</code>, <code>retos</code>, <code>retos_participantes</code>, <code>participacion_reto</code>, <code>premios</code>, <code>gustos</code>, <code>soporte</code></li>
+    </ul></div>
+  </div>
+</section>
+
+<section id="angular">
+  <h2>6. Conceptos fundamentales de Angular (aplicados en el proyecto)</h2>
+  <p><strong>Nota:</strong> el proyecto usa <strong>Angular moderno (v22, standalone)</strong>, no AngularJS 1.x. Se listan los conceptos tal como se usan en <code>frontend/src/app/</code>:</p>
+  <table>
+    <tr><th>Concepto</th><th>Uso en EcoReto</th><th>Ejemplo</th></tr>
+    <tr><td>Componentes standalone</td><td>Cada vista es autocontenida con <code>imports</code> propios, sin NgModules.</td><td><code>views/retos/crear-reto/crear-reto.component.ts</code></td></tr>
+    <tr><td>Routing + lazy loading</td><td>Rutas perezosas con <code>loadComponent</code>.</td><td><code>app.routes.ts</code>: <code>retos/:id/evidencia</code>, <code>admin/*</code></td></tr>
+    <tr><td>Guards</td><td><code>authGuard</code> exige sesión, <code>invitadoGuard</code> solo invitados, <code>roleGuard</code> filtra por <code>data.roles</code>.</td><td><code>core/guards/</code></td></tr>
+    <tr><td>Inyección de dependencias</td><td>Servicios con <code>inject()</code> (ej. <code>RetosService</code>, <code>Router</code>).</td><td><code>CrearRetoComponent</code></td></tr>
+    <tr><td>Signals</td><td>Estado reactivo local (<code>signal('')</code> para error/procesando).</td><td><code>crear-reto.component.ts</code></td></tr>
+    <tr><td>Formularios (FormsModule)</td><td><code>ngModel</code> + validación manual antes de enviar.</td><td>Login, registro, crear reto</td></tr>
+    <tr><td>Servicios + RxJS</td><td><code>HttpClient</code> + <code>Observable.subscribe({next, error})</code>.</td><td><code>core/services/retos.service.ts</code></td></tr>
+    <tr><td>Interceptores</td><td>Adjuntan JWT y reintentan failover en GET ante fallo de red/5xx.</td><td><code>core/interceptors/</code></td></tr>
+    <tr><td>Config runtime</td><td><code>ConfigService</code> lee <code>config.json</code> y recalcula URLs desde <code>BACKEND_HOST</code>.</td><td><code>core/services/config.service.ts</code></td></tr>
+  </table>
+</section>
+
+<section id="arquitectura">
+  <h2>7. Descripción de la arquitectura</h2>
+  <h3>Arquitectura general (cliente-servidor + móvil híbrido)</h3>
+  <pre>Navegador / App Capacitor (Angular 22)
+      │  HTTP JSON + FormData (fotos)   /gg/* , /uploads/*
+      ▼
+API NestJS (:3000) ── TypeORM ──► PostgreSQL (ecoretobd)
+      │  Multer ──► /backend/uploads (estáticos /uploads)
+      │  JWT access (2h) + refresh (7d), CORS, cron nocturno</pre>
+  <ul>
+    <li><strong>Backend modular por dominio:</strong> <code>auth, usuarios, retos, participaciones, premios, gustos, soporte, supervisor, admin, tasks</code> (<code>backend/src/modules/</code>). Cada módulo: <code>controller → service → dao → entity + dto</code>.</li>
+    <li><strong>Prefijo global:</strong> <code>app.setGlobalPrefix('gg')</code> en <code>main.ts</code>; API en <code>/gg</code>, archivos en <code>/uploads</code>.</li>
+    <li><strong>Configuración validada:</strong> <code>ConfigModule.forRoot({ validate: validateEnv })</code> con <code>env.validation.ts</code>; <code>DB_SYNCHRONIZE=false</code> (el esquema lo manda el .sql).</li>
+    <li><strong>Frontend en capas:</strong> <code>views/</code> (páginas) → <code>core/services/</code> (API) → <code>core/models/</code> + <code>shared/</code> (alerta, utils). Layout único <code>MainLayoutComponent</code> con header/sidebar.</li>
+    <li><strong>Config dual:</strong> <code>load-env.mjs</code> genera <code>environment.ts</code> (respaldo compilado) y <code>config.json</code> (editable sin recompilar) con lista <code>backends</code> para failover.</li>
+  </ul>
+</section>
+
+<section id="componentes">
+  <h2>8. Componentes principales</h2>
+  <table>
+    <tr><th>Capa</th><th>Componente</th><th>Responsabilidad</th></tr>
+    <tr><td>Backend</td><td><code>AuthController/Service</code></td><td>Registro, login, refresh, hash bcrypt, emisión JWT.</td></tr>
+    <tr><td>Backend</td><td><code>RetosController/Service + reglas-reto.ts</code></td><td>CRUD retos, cálculo de dificultad/puntos/nivel, <code>POST :id/participar</code>.</td></tr>
+    <tr><td>Backend</td><td><code>Participaciones + ProgresoPuntosService</code></td><td>Evidencias con foto, revisión, recálculo único de puntos/nivel (usado por revisión y cron).</td></tr>
+    <tr><td>Backend</td><td><code>Supervisor / Admin</code></td><td>Aprobar/negar retos y evidencias, gestionar usuarios/premios/gustos/soporte/historial.</td></tr>
+    <tr><td>Backend</td><td><code>Premios</code></td><td>Catálogo y canjes, control de saldo (<code>puntos = ganados − canjeados</code>).</td></tr>
+    <tr><td>Frontend</td><td><code>login, register</code></td><td>Auth con validación de correo institucional.</td></tr>
+    <tr><td>Frontend</td><td><code>crear-reto, detalle-reto, subir-evidencia</code></td><td>Formulario, detalle, subida de foto con vista previa.</td></tr>
+    <tr><td>Frontend</td><td><code>premios, clasificacion, inicio</code></td><td>Canje, ranking por puntos/nivel, feed.</td></tr>
+    <tr><td>Frontend</td><td><code>supervisor, admin/*</code> (8 vistas)</td><td>Revisión y gestión total (resumen, usuarios, retos, premios, gustos, soporte, historial, canjeados).</td></tr>
+    <tr><td>Frontend</td><td><code>ConfigService + interceptor</code></td><td>Failover <code>BACKEND_HOST/BACKENDS</code>, reintento en GET.</td></tr>
+  </table>
+</section>
+
+<section id="crud">
+  <h2>9. Explicación del CRUD (ejemplo: Retos)</h2>
+  <p>El CRUD de retos vive en <code>backend/src/modules/retos/</code> (<code>retos.controller.ts</code> → <code>retos.service.ts</code> → <code>reto.dao.ts</code>) y se consume desde <code>RetosService</code> del frontend.</p>
+  <table>
+    <tr><th>Op.</th><th>Endpoint</th><th>Frontend</th><th>Notas</th></tr>
+    <tr><td>Create</td><td><code>POST /gg/retos</code> (multipart: dto + <code>imagen?</code>)</td><td><code>crear-reto.component</code> → <code>retosService.crear()</code></td><td>Solo manda nombre/descripción/categoría/fechaLímite; dificultad y puntos los calcula el backend. Nace en <code>Pendiente_Aprobacion</code>.</td></tr>
+    <tr><td>Read</td><td><code>GET /gg/retos</code> (+ query filtros), <code>GET /gg/retos/:id</code>, <code>GET /gg/retos/:id/participantes</code></td><td><code>inicio, detalle-reto</code></td><td>Listado filtra por rol/estado; detalle incluye participación actual.</td></tr>
+    <tr><td>Update</td><td><code>PUT /gg/retos/:id</code>, <code>POST /gg/retos/:id/imagen</code></td><td><code>gestionar-retos</code> (admin)</td><td>Solo creador o staff según rol; imagen validada por <code>opcionesImagen</code>.</td></tr>
+    <tr><td>Delete</td><td><code>DELETE /gg/retos/:id</code>, <code>DELETE /gg/retos/:id/imagen</code></td><td>Admin</td><td>Borrado con cascada a participantes/participaciones (FK).</td></tr>
+    <tr><td>Acción</td><td><code>POST /gg/retos/:id/participar</code></td><td>Botón "Participar" en detalle</td><td>Crea fila en <code>retos_participantes</code>; luego <code>POST /gg/participaciones</code> sube la evidencia.</td></tr>
+  </table>
+  <p>Mismo patrón en premios (<code>premios.controller.ts</code>), gustos, soporte, usuarios y participaciones.</p>
+</section>
+
+<section id="validaciones">
+  <h2>10. Explicación de las validaciones</h2>
+  <h3>Backend (rechaza primero, con 400)</h3>
+  <ul>
+    <li><strong>Global:</strong> <code>ValidationPipe({ whitelist: true, forbidNonWhitelisted: true, transform: true })</code> en <code>app.module.ts</code> + <code>validateEnv</code> al arrancar.</li>
+    <li><strong>DTOs con class-validator:</strong> ej. <code>CrearRetoDto</code> (<code>@MinLength(3)/@MaxLength(150)</code> nombre, <code>@MinLength(10)</code> descripción, <code>@IsDate()</code> fechaLímite); <code>RegistroDto</code> (<code>@IsEmail()</code>, contraseña <code>@MinLength(8)/@MaxLength(72)</code>, cédula única, <code>idsGustos</code> enteros ≥1); <code>CanjearPremioDto</code> (<code>@IsInt() @Min(1)</code>).</li>
+    <li><strong>Archivos:</strong> <code>opcionesImagen</code> (solo JPG/PNG/WebP, límite de tamaño) en todos los <code>FileInterceptor('imagen')</code>.</li>
+    <li><strong>Auth/autorización:</strong> <code>JwtAuthGuard + RolesGuard + @Roles(...)</code> en cada controlador; <code>ParseIntPipe</code> en <code>:id</code>.</li>
+  </ul>
+  <h3>Frontend (evita viajes inútiles)</h3>
+  <ul>
+    <li>Validación manual espejo del backend: ej. <code>crear-reto.component.ts → enviar()</code> (nombre ≥3, descripción ≥10, fecha &gt; hoy, imagen debe ser <code>image/*</code>), registro (email institucional, clave ≥8).</li>
+    <li>Errores del servidor se muestran con <code>AlertaComponent + mensajeDeError(err)</code>.</li>
+  </ul>
+</section>
+
+<section id="reglas">
+  <h2>11. Explicación de las reglas de negocio</h2>
+  <p>Fuente: <code>backend/src/modules/retos/reglas-reto.ts</code> y <code>participaciones/services/progreso-puntos.service.ts</code> (funciones puras + servicio único de progreso).</p>
+  <table>
+    <tr><th>Regla</th><th>Detalle</th></tr>
+    <tr><td>Duración</td><td>Reto entre <code>5 y 300 días</code> (<code>DIAS_MINIMOS/MAXIMOS_RETO</code>); vencimiento a <code>finDelDia()</code> (23:59:59.999).</td></tr>
+    <tr><td>Dificultad automática</td><td>≤50 días = Fácil, ≤150 = Medio, &gt;150 = Difícil. El cliente <strong>no</strong> la envía.</td></tr>
+    <tr><td>Puntos</td><td>Fácil: 5 pts c/5 días (tope 50). Medio: base 50 + 50 c/50 días extra (tope 150). Difícil: base 150 + 50 c/50 días (tope 300). Participar sin completar = 25% (<code>PORCENTAJE_POR_PARTICIPAR</code>).</td></tr>
+    <tr><td>Pago por evidencias</td><td><code>factorPorEvidencias(aprobadas, requeridas)</code>: 0 sin aprobadas; 100% al completar (pago inmediato y cuenta como cumplido); incompleto solo liquida al cerrar: 25%/50%/75% por tramo.</td></tr>
+    <tr><td>Nivel</td><td><code>calcularNivel(retosCumplidos)</code>: 0 con 1 cumplido, 1 con 2, 2 con 4… (potencias de 2) hasta nivel 100.</td></tr>
+    <tr><td>Saldo</td><td><code>puntos = max(0, ganados − canjeados)</code>; nunca baja de 0 ni de lo ya canjeado.</td></tr>
+    <tr><td>Flujos de estado</td><td>Reto: <code>Pendiente_Aprobacion → Activo → Finalizado</code> (o <code>Negado/Bloqueado/Desactivado</code>). Evidencia/soporte: <code>Enviado → Aprobado/Negado/Bloqueado</code>. Usuario: <code>pendiente/activo/desactivo/bloqueado</code>. Canje: <code>pendiente → listo para reclamar → reclamado</code> (o negado/bloqueado).</td></tr>
+    <tr><td>Roles</td><td><code>Usuario &lt; Supervisor &lt; Administrador</code>; crear reto lo puede cualquiera autenticado, aprobar solo staff.</td></tr>
+  </table>
+</section>
+
+<section id="pruebas">
+  <h2>13. Pruebas realizadas</h2>
+  <table>
+    <tr><th>Tipo</th><th>Comando</th><th>Qué cubre</th></tr>
+    <tr><td>Backend unitarias (Jest)</td><td><code>backend: npm test</code></td><td><code>reglas-reto.spec.ts</code> (dificultad, puntos, nivel, factor por evidencias), <code>uploads.config.spec.ts</code>, validaciones de DTO/env.</td></tr>
+    <tr><td>Backend e2e</td><td><code>backend: npm run test:e2e</code></td><td>Flujos HTTP contra API (<code>test/</code>).</td></tr>
+    <tr><td>Frontend (Vitest)</td><td><code>frontend: npm test</code></td><td><code>config.service.spec.ts</code> (recálculo desde <code>BACKEND_HOST</code>, failover), componentes.</td></tr>
+    <tr><td>Manual</td><td>—</td><td>Registro → crear reto → participar → subir evidencia → aprobar (supervisor) → puntos/nivel → canjear premio; cambio de backend editando <code>config.json</code> sin recompilar; CORS con web + túnel + Capacitor.</td></tr>
+  </table>
+</section>
+
+<section id="conclusiones">
+  <h2>14. Conclusiones</h2>
+  <ul>
+    <li>La gamificación (puntos proporcionales + niveles + ranking + premios) convierte acciones ambientales en un ciclo medible y motivador.</li>
+    <li>Calcular dificultad/puntos en el backend (<code>reglas-reto.ts</code>) evita trampas desde el cliente y unifica el criterio.</li>
+    <li>El servicio único de progreso (<code>ProgresoPuntosService</code>) garantiza que la revisión inmediata y el cron nocturno nunca diverjan.</li>
+    <li>La config runtime (<code>config.json</code> + failover) da resiliencia en demos con túneles y en despliegues sin recompilar.</li>
+  </ul>
+</section>
+
+<section id="recomendaciones">
+  <h2>15. Recomendaciones</h2>
+  <ul>
+    <li>Migrar <code>uploads/</code> local a almacenamiento externo (S3 o similar) para producción y múltiples instancias.</li>
+    <li>Agregar notificaciones (push/email) al aprobar/negar evidencias y al vencer retos.</li>
+    <li>Ampliar e2e (auth, ciclo completo de reto, canje sin saldo) y subir cobertura de <code>ProgresoPuntosService</code>.</li>
+    <li>Endurecer producción: <code>NODE_ENV=production</code>, <code>CORS_ORIGINS</code> explícito, secretos largos rotados, <code>DB_SYNCHRONIZE=false</code> + migraciones versionadas.</li>
+    <li>Completar <code>docs/capturas/</code> y un video corto del flujo estudiante → supervisor → premio.</li>
+  </ul>
+</section>
+
+</main>
+<footer>EcoReto Campus · Documentación generada desde el código (backend/src, frontend/src/app, database/) — Oct 2026</footer>
+</body>
+</html>

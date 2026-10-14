@@ -11,6 +11,11 @@ export class RevisionParticipacionDto {
   @MaxLength(1000)
   observacionRevision?: string;
 
+  @IsOptional()
+  @IsString()
+  @MaxLength(2000)
+  respuestaEvidencia?: string;
+
   /** Dias cumplidos sobre los estimados. Define el pago proporcional: 100% / 50%. */
   @IsOptional()
   @Type(() => Number)

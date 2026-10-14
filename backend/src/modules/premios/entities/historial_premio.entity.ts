@@ -13,8 +13,17 @@ export class HistorialPremio {
   @Column({ name: 'id_usuario', type: 'int' })
   idUsuario!: number;
 
-  @CreateDateColumn({ name: 'fecha_canje', type: 'timestamp' })
+  @CreateDateColumn({ name: 'fecha_canje', type: 'timestamptz' })
   fechaCanje!: Date;
+
+  @Column({ name: 'estado_canje_premio', type: 'varchar', length: 30, default: 'pendiente' })
+  estadoCanjePremio!: string;
+
+  @Column({ name: 'fecha_reclamo', type: 'timestamptz', nullable: true })
+  fechaReclamo!: Date | null;
+
+  @Column({ name: 'observacion_canje', type: 'text', nullable: true })
+  observacionCanje!: string | null;
 
   @ManyToOne(() => Premio, (premio) => premio.canjes, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'id_premio' })

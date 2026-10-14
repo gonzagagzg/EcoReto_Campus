@@ -1,0 +1,20 @@
+:host {
+  display: block;
+}
+
+.tabla-imagen {
+  width: 56px;
+  height: 56px;
+  object-fit: cover;
+  border-radius: var(--radio-chico);
+  border: var(--grosor) solid var(--borde-fuerte);
+  background: var(--superficie-2);
+}
+
+.vista-previa-imagen {
+  max-width: 200px;
+  max-height: 200px;
+  border-radius: var(--radio-chico);
+  border: var(--grosor) solid var(--borde-fuerte);
+  background: var(--superficie-2);
+}

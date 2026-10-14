@@ -1,5 +1,5 @@
 import { Type } from 'class-transformer';
-import { IsEnum, IsInt, IsOptional, Max, Min } from 'class-validator';
+import { IsEnum, IsInt, IsOptional, Max, Min, IsString } from 'class-validator';
 import { EstadoEvaluacion } from '../entities/participacion.entity';
 
 export class ParticipacionQueryDto {
@@ -31,4 +31,8 @@ export class ParticipacionQueryDto {
   @IsInt()
   @Min(1)
   idRetosParticipantes?: number;
+
+  @IsOptional()
+  @IsString()
+  busqueda?: string;
 }

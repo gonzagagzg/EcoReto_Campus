@@ -1,4 +1,4 @@
-import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
 import { RetoParticipante } from '../../retos/entities/reto_participante.entity';
 import { Usuario } from '../../usuarios/entities/usuario.entity';
 
@@ -38,12 +38,18 @@ export class Participacion {
   @Column({ name: 'observacion_revision', type: 'text', nullable: true })
   observacionRevision!: string | null;
 
-  @Column({ name: 'fecha_revision', type: 'timestamp', nullable: true })
+  @Column({ name: 'respuesta_evidencia', type: 'text', nullable: true })
+  respuestaEvidencia!: string | null;
+
+  @Column({ name: 'fecha_revision', type: 'timestamptz', nullable: true })
   fechaRevision!: Date | null;
 
-  /** Dias de cumplimiento sobre los dias estimados del reto. Base del pago proporcional 100% / 50%. */
+  /** Dias de cumplimiento digitados por el supervisor. Solo registro: no afecta los puntos. */
   @Column({ name: 'dias_cumplidos', type: 'int', nullable: true })
   diasCumplidos!: number | null;
+
+  @CreateDateColumn({ name: 'fecha_creacion', type: 'timestamptz' })
+  fechaCreacion!: Date;
 
   @ManyToOne(() => RetoParticipante, (participante) => participante.participaciones, {
     onDelete: 'CASCADE',

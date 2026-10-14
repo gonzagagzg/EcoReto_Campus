@@ -1,0 +1,389 @@
+<div class="apilar">
+  <div class="seccion-titulo">
+    <div>
+      <h1>Gestionar usuarios</h1>
+      <p class="tenue chico">
+        Activá, bloqueá o dala de baja, y gestioná el rol de las cuentas del campus.
+      </p>
+    </div>
+  </div>
+
+  <app-alerta [mensaje]="error()" tipo="error" />
+  <app-alerta [mensaje]="exito()" tipo="ok" />
+
+  <section class="tarjeta tarjeta--plana">
+    <form class="filtros" (ngSubmit)="buscar()">
+      <div class="campo">
+        <label for="q">Buscar</label>
+        <input
+          id="q"
+          name="busqueda"
+          class="entrada"
+          placeholder="Nombre, alias o correo"
+          [(ngModel)]="busqueda"
+        />
+      </div>
+
+      <div class="campo">
+        <label for="rol">Rol</label>
+        <select id="rol" name="rol" class="entrada" [(ngModel)]="rol">
+          <option value="">Todos</option>
+          @for (opcion of rolesDisponibles(); track opcion) {
+            <option [value]="opcion">{{ opcion }}</option>
+          }
+        </select>
+      </div>
+
+      <div class="campo">
+        <label for="estado">Estado</label>
+        <select id="estado" name="estado" class="entrada" [(ngModel)]="estado">
+          <option value="">Todos</option>
+          @for (opcion of estados; track opcion) {
+            <option [value]="opcion">{{ opcion }}</option>
+          }
+        </select>
+      </div>
+
+      <div class="filtros__botones">
+        <button type="submit" class="btn btn--primario">Buscar</button>
+        <button type="button" class="btn btn--fantasma" (click)="limpiar()">Limpiar</button>
+      </div>
+    </form>
+  </section>
+
+  @if (cargando()) {
+    <app-loader texto="Cargando usuarios..." />
+  } @else if (items().length === 0) {
+    <div class="vacio">
+      <span class="vacio__icono" aria-hidden="true">?</span>
+      <p><strong>No hay usuarios con esos filtros</strong></p>
+      <p class="chico">Probá con otra búsqueda.</p>
+      <button type="button" class="btn btn--secundario" (click)="limpiar()">Limpiar filtros</button>
+    </div>
+  } @else {
+    <div class="tabla-envoltorio">
+      <table class="tabla tabla--tarjetas">
+        <thead>
+          <tr>
+            <th>Cuenta</th>
+            <th>Rol</th>
+            <th>Estado</th>
+            <th>Puntos</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (usuario of items(); track usuario.idUsuario) {
+            <tr>
+              <td data-label="Cuenta">
+                <strong>{{ usuario.alias }}</strong>
+                <div class="chico tenue">{{ usuario.nombre }} {{ usuario.apellido }}</div>
+                <div class="chico tenue">{{ usuario.correo }}</div>
+              </td>
+
+              <td data-label="Rol">
+                <select
+                  class="entrada entrada--tabla"
+                  name="rol"
+                  [ngModel]="usuario.rol"
+                  (ngModelChange)="cambiarRol(usuario, $event)"
+                >
+                  @for (opcion of rolesDisponibles(); track opcion) {
+                    <option [value]="opcion">{{ opcion }}</option>
+                  }
+                </select>
+              </td>
+
+              <td data-label="Estado">
+                <select
+                  class="entrada entrada--tabla"
+                  name="estado"
+                  [ngModel]="usuario.estado"
+                  (ngModelChange)="cambiarEstado(usuario, $event)"
+                >
+                  @for (opcion of estados; track opcion) {
+                    <option [value]="opcion">{{ opcion }}</option>
+                  }
+                </select>
+              </td>
+
+              <td data-label="Puntos">
+                <span class="insignia insignia--oro">{{ usuario.puntos }} pts</span>
+              </td>
+
+              <td data-label="Acciones">
+                <div class="acciones">
+                  <button
+                    type="button"
+                    class="btn btn--cian btn--chico"
+                    (click)="abrirEdicion(usuario)"
+                  >
+                    Editar
+                  </button>
+                  @if (usuario.estado === EstadoUsuario.Pendiente) {
+                    <button
+                      type="button"
+                      class="btn btn--primario btn--chico"
+                      (click)="activar(usuario)"
+                    >
+                      Activar
+                    </button>
+                  }
+                  @if (usuario.estado === EstadoUsuario.Desactivo) {
+                    <button
+                      type="button"
+                      class="btn btn--primario btn--chico"
+                      (click)="restaurar(usuario)"
+                    >
+                      Restaurar
+                    </button>
+                  } @else {
+                    <button
+                      type="button"
+                      class="btn btn--peligro btn--chico"
+                      (click)="porEliminar.set(usuario)"
+                    >
+                      Eliminar
+                    </button>
+                  }
+                </div>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+
+    <app-paginacion
+      [pagina]="pagina"
+      [limite]="limite"
+      [total]="total()"
+      (cambio)="cambiarPagina($event)"
+    />
+  }
+
+  @if (porEliminar(); as usuario) {
+    <app-modal-confirmacion
+      titulo="Desactivar cuenta"
+      [mensaje]="
+        'La cuenta de ' +
+        usuario.alias +
+        ' quedará desactivada y no podrá iniciar sesión. Su historial se conserva y se puede restaurar.'
+      "
+      textoConfirmar="Desactivar"
+      (confirmar)="confirmarEliminacion()"
+      (cancelar)="cancelarEliminacion()"
+    />
+  }
+
+  @if (editando(); as usuario) {
+    <div class="modal-fondo" (click)="cerrarEdicion()">
+      <div
+        class="modal modal--ancho"
+        role="dialog"
+        aria-modal="true"
+        [attr.aria-label]="'Editar usuario ' + usuario.alias"
+        (click)="$event.stopPropagation()"
+      >
+        <h3>Editar usuario: {{ usuario.alias }}</h3>
+
+        <app-alerta [mensaje]="error()" tipo="error" />
+        <app-alerta [mensaje]="exito()" tipo="ok" />
+
+        <form class="formulario-edicion" (ngSubmit)="guardarEdicion()">
+          <div class="formulario-cuadricula">
+            <div class="campo">
+              <label for="e-nombre">Nombre</label>
+              <input
+                id="e-nombre"
+                name="nombre"
+                type="text"
+                class="entrada"
+                maxlength="100"
+                [(ngModel)]="formEdit.nombre"
+                required
+              />
+            </div>
+
+            <div class="campo">
+              <label for="e-apellido">Apellido</label>
+              <input
+                id="e-apellido"
+                name="apellido"
+                type="text"
+                class="entrada"
+                maxlength="100"
+                [(ngModel)]="formEdit.apellido"
+                required
+              />
+            </div>
+
+            <div class="campo">
+              <label for="e-alias">Alias</label>
+              <input
+                id="e-alias"
+                name="alias"
+                type="text"
+                class="entrada"
+                maxlength="50"
+                [(ngModel)]="formEdit.alias"
+                required
+              />
+            </div>
+
+            <div class="campo">
+              <label for="e-correo">Correo</label>
+              <input
+                id="e-correo"
+                name="correo"
+                type="email"
+                class="entrada"
+                maxlength="100"
+                [(ngModel)]="formEdit.correo"
+                required
+              />
+            </div>
+
+            <div class="campo">
+              <label for="e-cedula">Cédula</label>
+              <input
+                id="e-cedula"
+                name="cedula"
+                type="text"
+                class="entrada"
+                maxlength="20"
+                [(ngModel)]="formEdit.cedula"
+                required
+              />
+            </div>
+
+            <div class="campo">
+              <label for="e-carrera">Carrera</label>
+              <input
+                id="e-carrera"
+                name="carrera"
+                type="text"
+                class="entrada"
+                maxlength="100"
+                [(ngModel)]="formEdit.carrera"
+              />
+            </div>
+
+            <div class="campo">
+              <label for="e-nivel-carrera">Nivel de carrera</label>
+              <input
+                id="e-nivel-carrera"
+                name="nivelCarrera"
+                type="text"
+                class="entrada"
+                maxlength="50"
+                [(ngModel)]="formEdit.nivelCarrera"
+              />
+            </div>
+
+            <div class="campo">
+              <label for="e-centro">Centro de estudios</label>
+              <input
+                id="e-centro"
+                name="centroEstudios"
+                type="text"
+                class="entrada"
+                maxlength="150"
+                [(ngModel)]="formEdit.centroEstudios"
+              />
+            </div>
+
+            <div class="campo">
+              <label for="e-contrasena"
+                >Contraseña <span class="optional">(dejar vacío para no cambiar)</span></label
+              >
+              <input
+                id="e-contrasena"
+                name="contrasena"
+                type="password"
+                class="entrada"
+                maxlength="72"
+                [(ngModel)]="formEdit.contrasena"
+              />
+            </div>
+
+            <div class="campo">
+              <label for="e-puntos">Puntos</label>
+              <input
+                id="e-puntos"
+                name="puntos"
+                type="number"
+                class="entrada"
+                min="0"
+                [(ngModel)]="formEdit.puntos"
+              />
+            </div>
+
+            <div class="campo">
+              <label for="e-historial">Historial de puntos</label>
+              <input
+                id="e-historial"
+                name="historialPuntos"
+                type="number"
+                class="entrada"
+                min="0"
+                [(ngModel)]="formEdit.historialPuntos"
+              />
+            </div>
+
+            <div class="campo">
+              <label for="e-retos">Retos cumplidos</label>
+              <input
+                id="e-retos"
+                name="retosCumplidos"
+                type="number"
+                class="entrada"
+                min="0"
+                [(ngModel)]="formEdit.retosCumplidos"
+              />
+            </div>
+
+            <div class="campo">
+              <label for="e-nivel">Nivel</label>
+              <input
+                id="e-nivel"
+                name="nivel"
+                type="number"
+                class="entrada"
+                min="0"
+                [(ngModel)]="formEdit.nivel"
+              />
+            </div>
+
+            <div class="campo">
+              <label for="e-estado">Estado</label>
+              <select id="e-estado" name="estado" class="entrada" [(ngModel)]="formEdit.estado">
+                @for (opcion of estados; track opcion) {
+                  <option [value]="opcion">{{ opcion }}</option>
+                }
+              </select>
+            </div>
+
+            <div class="campo">
+              <label for="e-rol">Rol</label>
+              <select id="e-rol" name="rol" class="entrada" [(ngModel)]="formEdit.rol">
+                @for (opcion of rolesDisponibles(); track opcion) {
+                  <option [value]="opcion">{{ opcion }}</option>
+                }
+              </select>
+            </div>
+          </div>
+
+          <div class="fila fila--fin">
+            <button type="button" class="btn btn--fantasma" (click)="cerrarEdicion()">
+              Cancelar
+            </button>
+            <button type="submit" class="btn btn--primario" [disabled]="procesando()">
+              {{ procesando() ? 'Guardando...' : 'Guardar cambios' }}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  }
+</div>

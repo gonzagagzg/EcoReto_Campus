@@ -1,0 +1,260 @@
+.busqueda {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 1rem;
+  align-items: end;
+}
+
+.busqueda .campo {
+  margin-bottom: 0;
+}
+
+.premio-tarjeta {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  padding: 1.25rem;
+  background: var(--superficie);
+  border: var(--grosor) solid var(--negro);
+  border-radius: var(--radio);
+  box-shadow: 4px 4px 0 var(--borde-fuerte);
+  transition:
+    transform var(--veloz),
+    box-shadow var(--veloz);
+}
+
+.premio-tarjeta:hover {
+  transform: translate(-3px, -3px);
+  box-shadow: 8px 8px 0 var(--oro);
+}
+
+.premio-tarjeta__imagen {
+  width: 100%;
+  height: 160px;
+  object-fit: cover;
+  border-radius: var(--radio-chico);
+  border: var(--grosor) solid var(--borde-fuerte);
+  background: var(--superficie-2);
+}
+
+.premio-tarjeta__icono {
+  width: 56px;
+  height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 14px;
+  border: var(--grosor) solid var(--negro);
+  background: linear-gradient(140deg, var(--oro), #ffd58a);
+  font-size: 1.6rem;
+  font-weight: 900;
+}
+
+.premio-tarjeta h3 {
+  margin: 0.4rem 0 0;
+}
+
+.premio-tarjeta p {
+  flex: 1;
+  margin: 0;
+}
+
+.premio-tarjeta__pie {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-top: 0.5rem;
+  padding-top: 0.65rem;
+  border-top: 1px dashed var(--borde-fuerte);
+}
+
+@media (max-width: 900px) {
+  .malla--3 {
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  }
+}
+
+@media (max-width: 640px) {
+  .busqueda {
+    grid-template: 1fr;
+    gap: 0.75rem;
+  }
+
+  .busqueda .btn {
+    width: 100%;
+  }
+
+  .seccion-titulo {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.75rem;
+  }
+
+  .seccion-titulo .btn {
+    width: 100%;
+  }
+
+  .malla--3 {
+    grid-template-columns: 1fr !important;
+  }
+
+  .premio-tarjeta {
+    padding: 1rem;
+  }
+
+  .premio-tarjeta__imagen {
+    height: 140px;
+  }
+
+  .premio-tarjeta__pie {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.5rem;
+  }
+
+  .premio-tarjeta__pie .btn {
+    width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .panel-estadistica {
+    padding: 0.75rem 1rem;
+  }
+
+  .panel-estadistica .valor {
+    font-size: 1.5rem;
+  }
+
+  .tabla th,
+  .tabla td {
+    padding: 0.5rem 0.6rem;
+    font-size: 0.8rem;
+  }
+
+  .puntos .numero {
+    font-size: 1.1rem;
+  }
+
+  .premio-tarjeta__icono {
+    width: 48px;
+    height: 48px;
+    font-size: 1.2rem;
+  }
+}
+
+/* Modal styles for confirmation dialog */
+.modal-fondo {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow-y: auto;
+  padding: 1rem;
+  z-index: 1000;
+}
+
+.modal {
+  background: var(--superficie);
+  border: var(--grosor) solid var(--negro);
+  border-radius: var(--radio);
+  padding: 1.5rem;
+  width: min(440px, 100%);
+  max-height: calc(100dvh - 2rem);
+  overflow-y: auto;
+  box-shadow: 8px 8px 0 var(--verde);
+}
+
+.modal--ancho {
+  width: min(640px, 100%);
+}
+
+.modal h3 {
+  margin: 0 0 0.25rem;
+  font-size: 1.25rem;
+  font-weight: 600;
+}
+
+.modal .tenue {
+  margin: 0 0 1.5rem;
+}
+
+.modal .fila {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.modal .fila--entre {
+  justify-content: space-between;
+}
+
+.modal .fila--fin {
+  justify-content: flex-end;
+  margin-top: 1.5rem;
+}
+
+.modal .detalle {
+  display: grid;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.modal .detalle > div {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.modal .detalle dt {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--texto-tenue);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.modal .detalle dd {
+  margin: 0;
+  font-size: 0.9rem;
+}
+
+.modal .campo {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  margin-bottom: 1rem;
+}
+
+.modal .campo label {
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: var(--texto-tenue);
+}
+
+.modal .entrada {
+  padding: 0.5rem 0.75rem;
+  border: var(--grosor) solid var(--borde-fuerte);
+  border-radius: var(--radio-chico);
+  background: var(--superficie);
+  color: var(--texto);
+  font-size: 0.9rem;
+  transition: border-color var(--veloz), box-shadow var(--veloz);
+}
+
+.modal .entrada:focus {
+  outline: none;
+  border-color: var(--verde);
+  box-shadow: 0 0 0 3px var(--verde-lit);
+}
+
+.modal .campo select.entrada {
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23666' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.75rem center;
+  padding-right: 2.5rem;
+}

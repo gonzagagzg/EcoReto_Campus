@@ -1,0 +1,905 @@
+/* =========================================================================
+   ZONA ROOT — Terminal hacker futurista
+   Fondo negro profundo, acento carmesí #FF0033, neón y scanlines CRT.
+   ========================================================================= */
+
+:root {
+  /* Los controles nativos (select, scrollbars, inputs) se pintan en oscuro */
+  color-scheme: dark;
+
+  /* Base */
+  --bg: #04060a;          /* negro profundo */
+  --bg-2: #080b10;
+  --panel: #0a0d12;
+  --card: #070a0f;
+  --border: #16202b;
+  --border-strong: #24313f;
+
+  /* Texto */
+  --text: #d7e0ea;
+  --muted: #6b7d8f;
+
+  /* Acento principal: carmesí */
+  --accent: #ff0033;
+  --accent-soft: rgba(255, 0, 51, 0.14);
+  --accent-glow: rgba(255, 0, 51, 0.55);
+
+  /* Semáforo / estados */
+  --red: #ff0033;
+  --green: #00ff66;
+  --yellow: #ffb800;
+  --cyan: #00f0ff;
+  --magenta: #d900ff;
+
+  /* Variables para las gráficas de estadísticas */
+  --chart-1: #00f0ff;
+  --chart-2: #00ff66;
+  --chart-3: #d900ff;
+  --chart-4: #ffb800;
+  --chart-5: #ff0033;
+  --chart-6: #7c8cff;
+  --grid: #14202b;
+  --axis: #6b7d8f;
+
+  --radius: 4px;
+  --mono: "JetBrains Mono", "Fira Code", "Cascadia Code", Consolas,
+    ui-monospace, "SF Mono", Menlo, monospace;
+}
+
+* { box-sizing: border-box; }
+
+html, body { height: 100%; }
+
+body {
+  margin: 0;
+  font-family: var(--mono);
+  font-size: 14px;
+  letter-spacing: 0.2px;
+  color: var(--text);
+  background-color: var(--bg);
+  background-image:
+    radial-gradient(900px 480px at 85% -12%, rgba(255, 0, 51, 0.10) 0%, transparent 60%),
+    radial-gradient(700px 500px at -10% 110%, rgba(0, 240, 255, 0.05) 0%, transparent 60%);
+  background-attachment: fixed;
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Líneas de escaneo CRT + viñeta: cubren toda la pantalla sin capturar clics */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 9998;
+  pointer-events: none;
+  background: repeating-linear-gradient(
+    to bottom,
+    rgba(255, 255, 255, 0) 0px,
+    rgba(255, 255, 255, 0) 2px,
+    rgba(0, 0, 0, 0.22) 3px,
+    rgba(0, 0, 0, 0.22) 4px
+  );
+  opacity: 0.35;
+  mix-blend-mode: multiply;
+}
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 9997;
+  pointer-events: none;
+  background: radial-gradient(ellipse at center, transparent 55%, rgba(0, 0, 0, 0.55) 100%);
+}
+
+::selection { background: var(--accent); color: #fff; }
+
+/* Scrollbars de terminal */
+* { scrollbar-width: thin; scrollbar-color: var(--border-strong) transparent; }
+*::-webkit-scrollbar { width: 10px; height: 10px; }
+*::-webkit-scrollbar-track { background: rgba(255, 255, 255, 0.02); }
+*::-webkit-scrollbar-thumb {
+  background: var(--border-strong);
+  border: 2px solid var(--bg);
+  border-radius: 0;
+}
+*::-webkit-scrollbar-thumb:hover { background: var(--accent); }
+
+/* =========================================================================
+   LOGIN
+   ========================================================================= */
+.login {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+}
+
+.login__card {
+  position: relative;
+  width: 100%;
+  max-width: 400px;
+  background: linear-gradient(180deg, rgba(12, 16, 22, 0.9), rgba(6, 9, 13, 0.95));
+  border: 1px solid var(--border-strong);
+  border-top: 2px solid var(--accent);
+  border-radius: var(--radius);
+  padding: 34px 30px 30px;
+  display: grid;
+  gap: 18px;
+  box-shadow:
+    0 0 0 1px rgba(255, 0, 51, 0.08),
+    0 0 34px rgba(255, 0, 51, 0.16),
+    0 30px 70px rgba(0, 0, 0, 0.7);
+}
+/* Esquinas tipo panel táctil */
+.login__card::before,
+.login__card::after {
+  content: "";
+  position: absolute;
+  width: 16px;
+  height: 16px;
+  border: 2px solid var(--accent);
+  opacity: 0.8;
+}
+.login__card::before { top: -2px; left: -2px; border-right: 0; border-bottom: 0; }
+.login__card::after { bottom: -2px; right: -2px; border-left: 0; border-top: 0; }
+
+.login__title {
+  margin: 0;
+  font-size: 26px;
+  letter-spacing: 3px;
+  color: var(--text);
+  text-shadow: 0 0 12px var(--accent-glow);
+}
+.login__title::before { content: "> "; color: var(--accent); }
+
+.login__subtitle {
+  margin: -10px 0 6px;
+  color: var(--muted);
+  font-size: 12px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+.login__error {
+  margin: 0;
+  color: var(--red);
+  font-size: 13px;
+  border: 1px solid rgba(255, 0, 51, 0.4);
+  background: rgba(255, 0, 51, 0.08);
+  border-radius: var(--radius);
+  padding: 10px 12px;
+  box-shadow: inset 0 0 18px rgba(255, 0, 51, 0.12);
+}
+
+/* =========================================================================
+   CAMPOS
+   ========================================================================= */
+.field { display: grid; gap: 6px; }
+.field__label {
+  font-size: 11px;
+  color: var(--muted);
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+.field__label::before { content: "$ "; color: var(--accent); }
+
+.field__input {
+  background: #05070b;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius);
+  color: var(--text);
+  padding: 11px 12px;
+  font-family: var(--mono);
+  font-size: 14px;
+  outline: none;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+.field__input::placeholder { color: #3d4b5a; }
+.field__input:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 1px var(--accent), 0 0 16px rgba(255, 0, 51, 0.28);
+}
+
+/* =========================================================================
+   BOTONES
+   ========================================================================= */
+.btn {
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius);
+  cursor: pointer;
+  font-family: var(--mono);
+  font-weight: 700;
+  font-size: 13px;
+  letter-spacing: 0.5px;
+  padding: 11px 16px;
+  color: var(--text);
+  background: #0a0e14;
+  transition: all 0.15s;
+}
+.btn:disabled { opacity: 0.5; cursor: wait; }
+.btn--primary {
+  background: var(--accent);
+  color: #fff;
+  border-color: var(--accent);
+  box-shadow: 0 0 20px rgba(255, 0, 51, 0.4);
+}
+.btn--primary:hover:not(:disabled) {
+  box-shadow: 0 0 30px rgba(255, 0, 51, 0.7);
+  transform: translateY(-1px);
+}
+.btn--ghost { background: transparent; color: var(--muted); }
+.btn--ghost:hover { color: var(--accent); border-color: var(--accent); box-shadow: 0 0 14px rgba(255, 0, 51, 0.25); }
+.btn--mini {
+  background: transparent;
+  border: 1px solid var(--border-strong);
+  color: var(--muted);
+  padding: 5px 10px;
+  font-size: 11px;
+}
+.btn--mini:hover { color: var(--accent); border-color: var(--accent); }
+
+.btn--peligro {
+  background: rgba(255, 0, 51, 0.1);
+  color: var(--red);
+  border: 1px solid rgba(255, 0, 51, 0.5);
+}
+.btn--peligro:hover:not(:disabled) {
+  background: rgba(255, 0, 51, 0.22);
+  box-shadow: 0 0 20px rgba(255, 0, 51, 0.4);
+}
+
+/* =========================================================================
+   PANEL / TOPBAR
+   ========================================================================= */
+.panel { min-height: 100vh; }
+
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 12px 22px;
+  background: rgba(4, 6, 10, 0.85);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--border-strong);
+  box-shadow: 0 2px 24px rgba(0, 0, 0, 0.6), inset 0 -1px 0 rgba(255, 0, 51, 0.25);
+  flex-wrap: wrap;
+}
+
+.topbar__brand { display: flex; align-items: center; gap: 12px; }
+.topbar__brand strong {
+  font-size: 16px;
+  letter-spacing: 3px;
+  color: var(--text);
+  text-shadow: 0 0 10px var(--accent-glow);
+}
+.topbar__sub {
+  display: block;
+  font-size: 10px;
+  color: var(--muted);
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+.topbar__status { display: flex; gap: 8px; flex-wrap: wrap; }
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  color: var(--muted);
+  background: #06090d;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius);
+  padding: 5px 10px;
+}
+.badge i {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--muted);
+}
+.badge--ok { color: var(--green); border-color: rgba(0, 255, 102, 0.4); }
+.badge--ok i { background: var(--green); box-shadow: 0 0 10px var(--green); animation: parpadeo 2.4s infinite; }
+.badge--bad { color: var(--red); border-color: rgba(255, 0, 51, 0.5); }
+.badge--bad i { background: var(--red); box-shadow: 0 0 10px var(--red); }
+
+@keyframes parpadeo {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.35; }
+}
+
+/* =========================================================================
+   CONTENIDO / TARJETAS
+   ========================================================================= */
+.content { padding: 22px; max-width: 1240px; margin: 0 auto; }
+
+.kpis {
+  display: grid;
+  /* min(...) evita que la columna minima desborde en pantallas angostas:
+     160px nunca puede superar el ancho disponible. */
+  grid-template-columns: repeat(auto-fit, minmax(min(160px, 100%), 1fr));
+  gap: 14px;
+  margin-bottom: 20px;
+}
+
+.kpi {
+  position: relative;
+  background: linear-gradient(180deg, rgba(10, 14, 20, 0.85), rgba(6, 9, 13, 0.9));
+  border: 1px solid var(--border-strong);
+  border-left: 2px solid var(--accent);
+  border-radius: var(--radius);
+  padding: 14px 16px;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.02);
+}
+.kpi__valor {
+  font-size: 26px;
+  font-weight: 700;
+  line-height: 1.1;
+  color: var(--text);
+  text-shadow: 0 0 14px rgba(0, 240, 255, 0.25);
+}
+.kpi__etiqueta {
+  font-size: 11px;
+  color: var(--muted);
+  margin-top: 5px;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+.grid {
+  display: grid;
+  /* min(...) idem: en un móvil de 360px la columna nunca desborda. */
+  grid-template-columns: repeat(auto-fit, minmax(min(340px, 100%), 1fr));
+  gap: 16px;
+}
+
+.card {
+  position: relative;
+  background: linear-gradient(180deg, rgba(10, 14, 20, 0.8), rgba(6, 9, 13, 0.9));
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius);
+  padding: 16px;
+  min-width: 0;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.4), 0 14px 40px rgba(0, 0, 0, 0.45);
+}
+/* Esquinas superiores tipo panel táctil */
+.card::before {
+  content: "";
+  position: absolute;
+  top: -1px;
+  left: -1px;
+  width: 14px;
+  height: 14px;
+  border: 2px solid var(--accent);
+  border-right: 0;
+  border-bottom: 0;
+  opacity: 0.7;
+}
+.card--wide { grid-column: 1 / -1; }
+
+.card__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  /* En pantallas angostas título y acciones bajan una debajo de otra. */
+  flex-wrap: wrap;
+}
+
+.card__title {
+  margin: 0 0 12px;
+  font-size: 12px;
+  color: var(--text);
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--border);
+}
+.card__title::before { content: "// "; color: var(--accent); }
+
+.card__body { position: relative; height: 270px; }
+.card__actions { display: flex; align-items: center; gap: 10px; }
+
+h1 {
+  grid-column: 1 / -1;
+  margin: 14px 0 2px;
+  font-size: 15px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--accent);
+  text-shadow: 0 0 12px var(--accent-glow);
+}
+h1::before { content: "▚ "; }
+
+.muted { color: var(--muted); font-size: 12px; }
+
+/* =========================================================================
+   CONSOLA DE LOGS
+   ========================================================================= */
+.console {
+  position: relative;
+  height: 300px;
+  overflow-y: auto;
+  background: #03050a;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius);
+  padding: 10px 12px;
+  font: 12px/1.6 var(--mono);
+  white-space: pre-wrap;
+  word-break: break-all;
+  box-shadow: inset 0 0 30px rgba(0, 0, 0, 0.7), inset 0 0 60px rgba(255, 0, 51, 0.03);
+}
+.console--alt { height: 340px; }
+
+.line { color: var(--muted); }
+.line--log { color: var(--cyan); }
+.line--warn { color: var(--yellow); }
+.line--error { color: var(--red); }
+.line--debug { color: var(--magenta); }
+.line--verbose { color: var(--green); }
+.line--fatal {
+  color: #fff;
+  background: rgba(255, 0, 51, 0.2);
+  border-radius: 2px;
+  padding: 1px 6px;
+  box-shadow: 0 0 12px rgba(255, 0, 51, 0.4);
+}
+.line__hora { color: #47566a; margin-right: 6px; }
+.line__ip { color: var(--cyan); font-weight: 600; margin-right: 6px; }
+.line__msg { color: inherit; }
+
+/* Badge de tipo (nivel) */
+.nivel {
+  display: inline-block;
+  min-width: 52px;
+  text-align: center;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  border-radius: 2px;
+  padding: 1px 6px;
+  margin-right: 6px;
+  color: #03050a;
+}
+.nivel--log { background: var(--cyan); }
+.nivel--warn { background: var(--yellow); }
+.nivel--error { background: var(--red); color: #fff; }
+.nivel--debug { background: var(--magenta); color: #fff; }
+.nivel--verbose { background: var(--green); }
+.nivel--fatal { background: #fff; color: var(--red); }
+
+/* Badge de tema específico (contexto) */
+.tema {
+  display: inline-block;
+  font-size: 10px;
+  font-weight: 600;
+  border-radius: 2px;
+  padding: 1px 6px;
+  margin-right: 6px;
+  color: var(--cyan);
+  background: rgba(0, 240, 255, 0.08);
+  border: 1px solid rgba(0, 240, 255, 0.3);
+}
+.line__ruta { color: var(--cyan); margin-right: 6px; opacity: 0.85; }
+.line__usuario { color: var(--yellow); margin-right: 6px; }
+
+/* =========================================================================
+   FILTROS DE LA CONSOLA
+   ========================================================================= */
+.log-filtros {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 8px;
+}
+.log-tabs { display: flex; gap: 6px; flex-wrap: wrap; }
+.log-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #06090d;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius);
+  color: var(--muted);
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 700;
+  padding: 5px 10px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.log-tab:hover { color: var(--text); border-color: var(--muted); }
+.log-tab--activo { color: var(--accent); border-color: var(--accent); box-shadow: 0 0 14px rgba(255, 0, 51, 0.28); }
+.log-tab--activo[data-nivel="log"] { border-color: var(--cyan); color: var(--cyan); box-shadow: 0 0 14px rgba(0, 240, 255, 0.28); }
+.log-tab--activo[data-nivel="warn"] { border-color: var(--yellow); color: var(--yellow); box-shadow: 0 0 14px rgba(255, 184, 0, 0.28); }
+.log-tab--activo[data-nivel="error"] { border-color: var(--red); color: var(--red); box-shadow: 0 0 14px rgba(255, 0, 51, 0.28); }
+.log-tab--activo[data-nivel="debug"] { border-color: var(--magenta); color: var(--magenta); box-shadow: 0 0 14px rgba(217, 0, 255, 0.28); }
+.log-tab--activo[data-nivel="verbose"] { border-color: var(--green); color: var(--green); box-shadow: 0 0 14px rgba(0, 255, 102, 0.28); }
+.log-tab--activo[data-nivel="fatal"] { border-color: #fff; color: #fff; box-shadow: 0 0 14px rgba(255, 255, 255, 0.28); }
+.log-tab__count {
+  background: rgba(255, 255, 255, 0.06);
+  border-radius: 2px;
+  padding: 1px 7px;
+  font-size: 10px;
+}
+.log-tema {
+  background: #05070b;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius);
+  color: var(--text);
+  font-family: var(--mono);
+  font-size: 12px;
+  padding: 6px 10px;
+  outline: none;
+  max-width: 240px;
+}
+.log-tema:focus { border-color: var(--accent); box-shadow: 0 0 12px rgba(255, 0, 51, 0.25); }
+.log-tema option { background: #05070b; }
+
+/* =========================================================================
+   CONSOLA "LOGS POR USUARIO"
+   ========================================================================= */
+.lu-buscar {
+  background: #05070b;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius);
+  color: var(--text);
+  font-family: var(--mono);
+  font-size: 13px;
+  padding: 7px 11px;
+  outline: none;
+  width: 280px;
+  max-width: 60vw;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+.lu-buscar::placeholder { color: #3d4b5a; }
+.lu-buscar:focus { border-color: var(--accent); box-shadow: 0 0 14px rgba(255, 0, 51, 0.25); }
+
+.lu-vacio {
+  color: var(--muted);
+  font-style: italic;
+  padding: 6px 2px;
+}
+.lu-vacio::before { content: "// "; color: var(--accent); }
+
+/* Cada acción de usuario */
+.lu-linea {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  padding: 4px 0;
+  border-bottom: 1px dashed rgba(22, 32, 43, 0.9);
+}
+.lu-linea:last-child { border-bottom: 0; }
+
+.lu-hora { color: #47566a; flex: 0 0 auto; }
+
+.lu-usuario {
+  flex: 0 0 auto;
+  font-weight: 700;
+  color: var(--yellow);
+  background: rgba(255, 184, 0, 0.08);
+  border: 1px solid rgba(255, 184, 0, 0.3);
+  border-radius: 2px;
+  padding: 0 6px;
+  max-width: 220px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.lu-accion { flex: 1 1 auto; color: var(--text); }
+.lu-accion strong { color: var(--accent); font-weight: 700; text-shadow: 0 0 8px rgba(255, 0, 51, 0.35); }
+
+.lu-ip { flex: 0 0 auto; color: var(--muted); }
+
+.lu-status { flex: 0 0 auto; font-weight: 700; border-radius: 2px; padding: 0 5px; }
+.lu-status--ok { color: var(--green); }
+.lu-status--warn { color: var(--yellow); }
+.lu-status--error { color: var(--red); }
+
+/* Barra de acciones "Logs por usuario" */
+.lu-barra {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 10px;
+  flex-wrap: wrap;
+}
+.lu-estado { font-size: 13px; color: var(--green); margin-left: 4px; }
+
+/* =========================================================================
+   TABLA
+   ========================================================================= */
+.table-wrap { overflow-x: auto; }
+.table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.table th, .table td {
+  text-align: left;
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--border);
+}
+.table th {
+  color: var(--accent);
+  font-weight: 700;
+  font-size: 11px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+.table tbody tr:hover { background: rgba(255, 0, 51, 0.05); }
+.table .right { text-align: right; }
+
+/* =========================================================================
+   PULSO (marca del topbar)
+   ========================================================================= */
+.dot {
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 12px var(--accent);
+}
+.dot--pulse { animation: pulso 2s infinite; }
+@keyframes pulso {
+  0%, 100% { box-shadow: 0 0 0 0 var(--accent-glow); }
+  50% { box-shadow: 0 0 0 7px rgba(255, 0, 51, 0); }
+}
+
+/* =========================================================================
+   MODAL DE CONFIRMACIÓN (vaciar logs)
+   ========================================================================= */
+.modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(2, 3, 6, 0.8);
+  display: grid;
+  place-items: center;
+  z-index: 60;
+  padding: 20px;
+  backdrop-filter: blur(3px);
+}
+.modal[hidden] { display: none; }
+
+.modal__caja {
+  position: relative;
+  background: linear-gradient(180deg, rgba(12, 16, 22, 0.96), rgba(6, 9, 13, 0.98));
+  border: 1px solid var(--border-strong);
+  border-top: 2px solid var(--accent);
+  border-radius: var(--radius);
+  padding: 24px;
+  width: 100%;
+  max-width: 430px;
+  box-shadow: 0 0 40px rgba(255, 0, 51, 0.2), 0 30px 70px rgba(0, 0, 0, 0.7);
+}
+.modal__caja::before,
+.modal__caja::after {
+  content: "";
+  position: absolute;
+  width: 16px;
+  height: 16px;
+  border: 2px solid var(--accent);
+  opacity: 0.8;
+}
+.modal__caja::before { top: -2px; left: -2px; border-right: 0; border-bottom: 0; }
+.modal__caja::after { bottom: -2px; right: -2px; border-left: 0; border-top: 0; }
+
+.modal__titulo {
+  margin: 0 0 10px;
+  font-size: 16px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--text);
+  text-shadow: 0 0 10px var(--accent-glow);
+}
+.modal__titulo::before { content: "! "; color: var(--accent); }
+
+.modal__texto {
+  margin: 0 0 16px;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.6;
+}
+.modal__texto code {
+  background: #05070b;
+  border: 1px solid var(--border-strong);
+  border-radius: 2px;
+  padding: 1px 5px;
+  color: var(--red);
+}
+
+.modal__pass {
+  width: 100%;
+  background: #05070b;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius);
+  color: var(--text);
+  font-family: var(--mono);
+  font-size: 14px;
+  padding: 11px 12px;
+  outline: none;
+}
+.modal__pass:focus { border-color: var(--red); box-shadow: 0 0 16px rgba(255, 0, 51, 0.3); }
+
+.modal__error {
+  margin: 10px 0 0;
+  color: var(--red);
+  font-size: 13px;
+  text-shadow: 0 0 8px rgba(255, 0, 51, 0.4);
+}
+.modal__error[hidden] { display: none; }
+
+.modal__acciones {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+/* =========================================================================
+   PANTALLA DE ARRANQUE (index)
+   ========================================================================= */
+.boot {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  font-family: var(--mono);
+  color: var(--green);
+  text-align: center;
+}
+.boot__line { font-size: 14px; letter-spacing: 1px; }
+.boot__line::before { content: "> "; color: var(--accent); }
+.boot__cursor {
+  display: inline-block;
+  width: 9px;
+  height: 16px;
+  background: var(--green);
+  margin-left: 4px;
+  vertical-align: middle;
+  animation: cursor 1s steps(1) infinite;
+  box-shadow: 0 0 10px var(--green);
+}
+@keyframes cursor { 0%, 50% { opacity: 1; } 51%, 100% { opacity: 0; } }
+
+/* =========================================================================
+   RESPONSIVE
+   Orden: primero pantallas medias, luego móvil y por último muy angostas.
+   ========================================================================= */
+
+/* Taps sin retardo y sin resaltado azul del sistema. */
+@media (pointer: coarse) {
+  .btn, .log-tab, .badge, .field__input, .lu-buscar, .log-tema, .modal__pass {
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+  }
+}
+
+/* -------- Tableta y móvil grande -------- */
+@media (max-width: 860px) {
+  .content { padding: 18px 16px; }
+  .card__body { height: 240px; }
+  .console { height: 280px; }
+  .console--alt { height: 310px; }
+}
+
+/* -------- Móvil -------- */
+@media (max-width: 620px) {
+  body {
+    font-size: 13px;
+    /* iOS ignora `background-attachment: fixed` y provoca saltos al hacer scroll */
+    background-attachment: scroll;
+  }
+
+  /* Menos carga gráfica en móvil: el barrido CRT se suaviza. */
+  body::before { opacity: 0.22; }
+
+  /* Barra superior: marca + salir arriba, los tres estados debajo al ancho completo. */
+  .topbar {
+    position: static;
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: center;
+    gap: 10px;
+    padding: calc(12px + env(safe-area-inset-top)) 14px 12px;
+  }
+  .topbar__brand { gap: 10px; }
+  .topbar__brand strong { font-size: 14px; letter-spacing: 2px; }
+  .topbar__sub { font-size: 9px; }
+  .topbar .btn { padding: 8px 12px; font-size: 12px; }
+  .topbar__status { grid-column: 1 / -1; gap: 6px; }
+  .topbar__status .badge {
+    flex: 1 1 0;
+    justify-content: center;
+    padding: 6px 4px;
+    font-size: 10px;
+    gap: 5px;
+  }
+
+  .content {
+    padding: 14px 12px calc(20px + env(safe-area-inset-bottom));
+  }
+
+  /* Los KPIs van de dos en dos para no alargar el scroll. */
+  .kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+  .kpi { padding: 12px; }
+  .kpi__valor { font-size: 22px; }
+  .kpi__etiqueta { font-size: 10px; }
+
+  .grid { gap: 12px; }
+  .card { padding: 12px; }
+  .card__body { height: 210px; }
+  .card__head { flex-direction: column; align-items: stretch; gap: 8px; }
+  .card__actions { justify-content: space-between; }
+
+  /* Filtros de la consola: selector de tema a todo el ancho. */
+  .log-filtros { gap: 8px; }
+  .log-tema { max-width: none; width: 100%; }
+  .log-tab, .btn--mini { min-height: 34px; padding: 7px 10px; }
+
+  .console {
+    height: 250px;
+    font-size: 11px;
+    padding: 8px 10px;
+  }
+  .console--alt { height: 280px; }
+  .nivel { min-width: 46px; }
+
+  /* Buscador de "Logs por usuario" a todo el ancho. */
+  .lu-buscar { width: 100%; max-width: none; padding: 10px 12px; font-size: 16px; }
+  /* 16px en iOS evita el zoom automático al enfocar un campo. */
+
+  /* Cada acción se apila: cabecera con hora + usuario, acción debajo. */
+  .lu-linea {
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 4px 8px;
+    padding: 8px 0;
+  }
+  .lu-hora { order: 1; font-size: 11px; }
+  .lu-usuario { order: 2; flex: 1 1 auto; max-width: none; }
+  .lu-accion { order: 3; flex: 1 0 100%; }
+  .lu-ip { order: 4; font-size: 11px; }
+  .lu-status { order: 5; margin-left: auto; }
+
+  /* Botones de acción a todo el ancho, más fáciles de pulsar. */
+  .lu-barra { gap: 8px; }
+  .lu-barra .btn { flex: 1 1 100%; min-height: 44px; }
+  .lu-estado { margin-left: 0; flex: 1 1 100%; }
+
+  .btn { min-height: 42px; }
+
+  .table { font-size: 12px; }
+  .table th, .table td { padding: 7px 8px; }
+
+  /* Modal: se acerca al borde inferior para quedar al alcance del pulgar. */
+  .modal { padding: 12px; align-items: flex-end; }
+  .modal__caja { padding: 20px 16px; }
+  .modal__acciones { gap: 8px; }
+  .modal__acciones .btn { flex: 1 1 auto; min-height: 44px; }
+
+  /* Login */
+  .login { padding: 16px; }
+  .login__card { padding: 26px 18px 22px; }
+  .login__title { font-size: 22px; letter-spacing: 2px; }
+  .field__input { font-size: 16px; }
+
+  .boot__line { font-size: 13px; }
+}
+
+/* -------- Móvil muy angosto (320–380px) -------- */
+@media (max-width: 380px) {
+  .kpi__valor { font-size: 19px; }
+  .card__body { height: 190px; }
+  .console { height: 230px; }
+  .console--alt { height: 250px; }
+  .topbar__status .badge { font-size: 9px; padding: 5px 3px; gap: 4px; }
+  .lu-buscar { font-size: 16px; }
+  .login__title { font-size: 20px; }
+}

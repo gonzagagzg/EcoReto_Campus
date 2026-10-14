@@ -4,10 +4,12 @@ import { APP_FILTER, APP_PIPE } from '@nestjs/core';
 import { ScheduleModule } from '@nestjs/schedule';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AllExceptionsFilter } from './common/filters/all-exceptions.filter';
-import { databaseConfig, jwtConfig, validateEnv } from './config';
+import { databaseConfig, iaConfig, jwtConfig, validateEnv } from './config';
 import type { DatabaseEnv } from './config';
 import { AdminModule } from './modules/admin/admin.module';
 import { AuthModule } from './modules/auth/auth.module';
+import { IaModule } from './modules/ia/ia.module';
+import { LogsModule } from './modules/logs/logs.module';
 import { ParticipacionesModule } from './modules/participaciones/participaciones.module';
 import { PremiosModule } from './modules/premios/premios.module';
 import { RetosModule } from './modules/retos/retos.module';
@@ -22,7 +24,7 @@ import { AppService } from './app.service';
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
-      load: [databaseConfig, jwtConfig],
+      load: [databaseConfig, jwtConfig, iaConfig],
       validate: validateEnv,
     }),
     TypeOrmModule.forRootAsync({
@@ -40,6 +42,7 @@ import { AppService } from './app.service';
       }),
     }),
     ScheduleModule.forRoot(),
+    LogsModule,
     AuthModule,
     UsuariosModule,
     RetosModule,
@@ -48,6 +51,7 @@ import { AppService } from './app.service';
     SoporteModule,
     SupervisorModule,
     AdminModule,
+    IaModule,
     TasksModule,
   ],
   controllers: [AppController],

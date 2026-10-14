@@ -1,0 +1,301 @@
+<div class="apilar">
+  <div class="seccion-titulo">
+    <div>
+      <h1>Historial de registros</h1>
+      <p class="tenue chico">
+        Todas las evidencias enviadas por el campus. Abre una para revisarla y decidir si se
+        aprueba, se niega o se bloquea.
+      </p>
+    </div>
+  </div>
+
+  <app-alerta [mensaje]="error()" tipo="error" />
+  <app-alerta [mensaje]="exito()" tipo="ok" />
+
+  <section class="tarjeta tarjeta--plana">
+    <form class="filtros filtros--3" (ngSubmit)="buscar()">
+      <div class="campo">
+        <label for="busqueda">Buscar usuario</label>
+        <input
+          id="busqueda"
+          name="busqueda"
+          type="text"
+          class="entrada"
+          placeholder="Alias, nombre o apellido"
+          [(ngModel)]="busqueda"
+        />
+      </div>
+
+      <div class="campo">
+        <label for="usuario">Id de usuario</label>
+        <input
+          id="usuario"
+          name="idUsuario"
+          type="number"
+          class="entrada"
+          min="1"
+          placeholder="Ej: 5"
+          [(ngModel)]="idUsuario"
+        />
+      </div>
+
+      <div class="campo">
+        <label for="estado">Estado</label>
+        <select id="estado" name="estado" class="entrada" [(ngModel)]="estado">
+          <option value="">Todos</option>
+          @for (opcion of estados; track opcion) {
+            <option [value]="opcion">{{ opcion }}</option>
+          }
+        </select>
+      </div>
+
+      <div class="filtros__botones">
+        <button type="submit" class="btn btn--primario">Buscar</button>
+        <button type="button" class="btn btn--fantasma" (click)="limpiar()">Limpiar</button>
+      </div>
+    </form>
+  </section>
+
+  @if (cargando()) {
+    <app-loader texto="Cargando historial..." />
+  } @else if (items().length === 0) {
+    <div class="vacio">
+      <span class="vacio__icono" aria-hidden="true">?</span>
+      <p><strong>No hay registros con esos filtros</strong></p>
+      <p class="chico">Probá con otro estado o sin usuario.</p>
+      <button type="button" class="btn btn--secundario" (click)="limpiar()">Limpiar filtros</button>
+    </div>
+  } @else {
+    <div class="tabla-envoltorio">
+      <table class="tabla tabla--tarjetas">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Usuario</th>
+            <th>Reto</th>
+            <th>Estado</th>
+            <th>Días</th>
+            <th>Comentario</th>
+            <th>Revisada</th>
+            <th>Enviada</th>
+            <th>Revisado por</th>
+            <th>Evidencia</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (registro of items(); track registro.idParticipacion) {
+            <tr>
+              <td data-label="ID" class="tenue">{{ registro.idParticipacion }}</td>
+              <td data-label="Usuario">
+                <strong>{{ registro.nombreUsuario }}</strong>
+                <div class="chico tenue">U{{ registro.idUsuario }}</div>
+              </td>
+              <td data-label="Reto">
+                {{ registro.nombreReto }}
+                @if (registro.idReto) {
+                  <div class="chico tenue">Reto {{ registro.idReto }}</div>
+                }
+              </td>
+              <td data-label="Estado"><app-insignia [valor]="registro.estadoParticipacion" /></td>
+              <td data-label="Días">{{ registro.diasCumplidos ?? '—' }}</td>
+              <td data-label="Comentario" class="tenue">
+                @if (registro.observacionRevision) {
+                  {{ registro.observacionRevision }}
+                } @else {
+                  —
+                }
+              </td>
+              <td data-label="Revisada" class="tenue">{{ fecha(registro.fechaRevision) }}</td>
+              <td data-label="Enviada" class="tenue">{{ fecha(registro.fechaCreacion) }}</td>
+              <td data-label="Revisor" class="tenue">
+                @if (registro.aliasRevisor) {
+                  {{ registro.aliasRevisor }}
+                } @else {
+                  —
+                }
+              </td>
+              <td data-label="Evidencia">
+                <button type="button" class="btn btn--cian btn--chico" (click)="abrir(registro)">
+                  Ver
+                </button>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+
+    <app-paginacion
+      [pagina]="pagina"
+      [limite]="limite"
+      [total]="total()"
+      (cambio)="cambiarPagina($event)"
+    />
+  }
+
+  @if (ver(); as registro) {
+    <div class="modal-fondo" (click)="cerrar()">
+      <div
+        class="modal modal--ancho"
+        role="dialog"
+        aria-modal="true"
+        [attr.aria-label]="'Registro ' + registro.idParticipacion"
+        (click)="$event.stopPropagation()"
+      >
+        <h3>Registro #{{ registro.idParticipacion }}</h3>
+        <p class="chico tenue">
+          {{ registro.nombreReto }} · enviado por {{ registro.nombreUsuario }}
+        </p>
+
+        <app-alerta [mensaje]="error()" tipo="error" />
+
+        <dl class="detalle">
+          <div>
+            <dt>Estado actual</dt>
+            <dd><app-insignia [valor]="registro.estadoParticipacion" /></dd>
+          </div>
+          <div>
+            <dt>Participante</dt>
+            <dd>{{ registro.nombreUsuario }} (U{{ registro.idUsuario }})</dd>
+          </div>
+          <div>
+            <dt>Reto</dt>
+            <dd>{{ registro.nombreReto }}</dd>
+          </div>
+          <div>
+            <dt>Días cumplidos</dt>
+            <dd>{{ registro.diasCumplidos ?? '—' }}</dd>
+          </div>
+          <div>
+            <dt>Fecha de envío</dt>
+            <dd>{{ fechaHora(registro.fechaCreacion) }}</dd>
+          </div>
+          <div>
+            <dt>Última revisión</dt>
+            <dd>{{ fechaHora(registro.fechaRevision) }}</dd>
+          </div>
+          <div>
+            <dt>Revisado por</dt>
+            <dd>
+              @if (registro.aliasRevisor) {
+                {{ registro.aliasRevisor }}
+              } @else {
+                —
+              }
+            </dd>
+          </div>
+        </dl>
+
+        <div class="evidencia">
+          @if (registro.imagenEvidencia) {
+            <img
+              class="evidencia__foto"
+              [src]="registro.imagenEvidencia | imagenUrl"
+              alt="Evidencia adjuntada al registro"
+              appImagenRota
+            />
+            <a
+              class="btn btn--chico"
+              [href]="registro.imagenEvidencia | imagenUrl"
+              target="_blank"
+              rel="noopener"
+            >
+              Abrir en otra pestaña
+            </a>
+          } @else {
+            <p class="chico tenue">
+              El archivo de la evidencia ya no está disponible en el servidor.
+            </p>
+          }
+        </div>
+
+        @if (registro.observacionRevision) {
+          <div class="nota">
+            <span class="chico tenue">Comentario del Usuario</span>
+            <p>{{ registro.observacionRevision }}</p>
+          </div>
+        }
+
+        @if (registro.respuestaEvidencia) {
+          <div class="nota">
+            <span class="chico tenue">Respuesta</span>
+            <p>{{ registro.respuestaEvidencia }}</p>
+          </div>
+        }
+
+        @if (
+          registro.estadoParticipacion === EstadoEvaluacion.Aprobado ||
+          registro.estadoParticipacion === EstadoEvaluacion.Negado ||
+          registro.estadoParticipacion === EstadoEvaluacion.Bloqueado
+        ) {
+          <div class="nota nota--advertencia">
+            <span class="chico tenue">
+              @if (registro.estadoParticipacion === EstadoEvaluacion.Aprobado) {
+                ⚠ Esta evidencia ya fue aprobada
+              } @else if (registro.estadoParticipacion === EstadoEvaluacion.Negado) {
+                ⚠ Esta evidencia fue negada
+              } @else {
+                ⚠ Esta evidencia fue bloqueada
+              }
+            </span>
+            <p>No se puede cambiar el estado de una evidencia ya revisada.</p>
+          </div>
+        } @else {
+          <div class="campo">
+            <label for="r-estado">Decisión</label>
+            <select id="r-estado" name="formEstado" class="entrada" [(ngModel)]="formEstado">
+              <option [value]="EstadoEvaluacion.Aprobado">Aprobar</option>
+              <option [value]="EstadoEvaluacion.Negado">Negar</option>
+              <option [value]="EstadoEvaluacion.Bloqueado">Bloquear</option>
+            </select>
+          </div>
+
+          @if (formEstado === EstadoEvaluacion.Aprobado) {
+            <div class="campo">
+              <label>Días cumplidos</label>
+              @if (cargandoDias()) {
+                <div class="cargando-dias">
+                  <span class="spinner" aria-hidden="true"></span>
+                  Calculando...
+                </div>
+              } @else {
+                <div class="valor-calculado">
+                  <strong>{{ formDias }}</strong> día(s)
+                </div>
+                <p class="chico tenue">
+                  {{ formDias - 1 }} evidencia(s) ya aprobada(s) de este usuario en este reto + 1
+                  (la actual si se aprueba).
+                </p>
+              }
+            </div>
+          }
+
+          <div class="campo">
+            <label for="r-resp">Respuesta</label>
+            <textarea
+              id="r-resp"
+              name="formRespuesta"
+              class="entrada"
+              rows="3"
+              maxlength="2000"
+              placeholder="Escribe una respuesta al participante."
+              [(ngModel)]="formRespuesta"
+            ></textarea>
+          </div>
+        }
+
+        <div class="fila fila--fin">
+          <button type="button" class="btn btn--fantasma" (click)="cerrar()">Cerrar</button>
+          <button
+            type="button"
+            class="btn btn--primario"
+            [disabled]="procesando() || registro.estadoParticipacion !== EstadoEvaluacion.Enviado"
+            (click)="revisar()"
+          >
+            {{ procesando() ? 'Aplicando...' : 'Aplicar decisión' }}
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+</div>

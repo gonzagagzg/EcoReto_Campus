@@ -40,6 +40,10 @@ report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
 .env.production.local
 .env.local
 
+# Generado por frontend/scripts/load-env.mjs en cada start/build/test
+/frontend/src/environments/
+/frontend/public/config.json
+
 # temp directory
 .temp
 .tmp
@@ -80,3 +84,23 @@ pids
 # OS
 .DS_Store
 Thumbs.db
+
+# Archivos subidos en tiempo de ejecucion (solo se versionan los .gitkeep)
+/backend/uploads/**/*
+!/backend/uploads/**/
+!/backend/uploads/**/.gitkeep
+
+# Capacitor / Android (build y assets generados)
+/frontend/android/app/build/
+/frontend/android/build/
+/frontend/android/.gradle/
+/frontend/android/local.properties
+/frontend/android/capacitor-cordova-android-plugins/
+/frontend/android/app/src/main/assets/public/
+/frontend/android/app/src/main/assets/capacitor.config.json
+/frontend/android/app/src/main/assets/capacitor.plugins.json
+/frontend/android/app/src/main/res/xml/config.xml
+
+# Keystores / firmas (secretos)
+*.jks
+*.keystore

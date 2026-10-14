@@ -24,6 +24,8 @@ import { CambiarRolDto } from '../dto/cambiar-rol.dto';
 import { EstadoUsuarioAdminDto } from '../dto/estado-usuario-admin.dto';
 import { MetricasQueryDto } from '../dto/metricas-query.dto';
 import { AdminService } from '../services/admin.service';
+import { ActualizarUsuarioDto } from '../../usuarios/dto/actualizar-usuario.dto';
+import { EstadoCanjePremioDto } from '../dto/estado-canje-premio.dto';
 
 @Controller('admin')
 @UseGuards(JwtAuthGuard, RolesGuard)
@@ -74,6 +76,14 @@ export class AdminController {
     return this.adminService.activar(id);
   }
 
+  @Patch('usuarios/:id')
+  actualizarUsuario(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() dto: ActualizarUsuarioDto,
+  ) {
+    return this.adminService.actualizarUsuario(id, dto);
+  }
+
   @Delete('usuarios/:id')
   @HttpCode(HttpStatus.OK)
   eliminar(
@@ -81,5 +91,23 @@ export class AdminController {
     @CurrentUser('idUsuario') idSolicitante: number,
   ) {
     return this.adminService.eliminar(id, idSolicitante);
+  }
+
+  @Get('canjes')
+  listarHistorialPremios(
+    @Query('pagina') pagina?: number,
+    @Query('limite') limite?: number,
+    @Query('busqueda') busqueda?: string,
+    @Query('estado') estadoCanjePremio?: string,
+  ) {
+    return this.adminService.listarHistorialPremios(pagina ?? 1, limite ?? 15, busqueda, estadoCanjePremio);
+  }
+
+  @Patch('canjes/:id/estado')
+  actualizarEstadoCanje(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() dto: EstadoCanjePremioDto,
+  ) {
+    return this.adminService.actualizarEstadoCanjePremio(id, dto.estadoCanjePremio, dto.observacionCanje);
   }
 }

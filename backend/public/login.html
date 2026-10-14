@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>LOGIN ROOT</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Fira+Code:wght@400;600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="css/panel.css" />
+  </head>
+  <body>
+    <section class="login">
+      <form id="login-form" class="login__card">
+        <h1 class="login__title">ZONA ROOT</h1>
+        <p class="login__subtitle">Acceso restringido · Panel de administración</p>
+
+        <label class="field">
+          <span class="field__label">Correo:</span>
+          <input id="correo" class="field__input" type="email" autocomplete="username" placeholder="correo" required />
+        </label>
+
+        <label class="field">
+          <span class="field__label">Contraseña</span>
+          <input id="contrasena" class="field__input" type="password" autocomplete="current-password" placeholder="••••••••" required />
+        </label>
+
+        <button class="btn btn--primary" type="submit">Entrar</button>
+        <p id="login-error" class="login__error" hidden></p>
+      </form>
+    </section>
+
+    <script src="js/login.js"></script>
+  </body>
+</html>

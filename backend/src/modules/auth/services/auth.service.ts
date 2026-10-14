@@ -10,12 +10,13 @@ import {
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import { accessTokenOptions, jwtConfig, refreshTokenOptions } from '../../../config/jwt.config';
+import { esCorreoInstitucional } from '../../../config/correo-institucional.config';
 import type { TokenPayload } from '../../../common/interfaces/usuario-autenticado.interface';
 import {
   USUARIO_DAO,
   type UsuarioDaoInterface,
 } from '../../usuarios/daos/usuario.dao.interface';
-import { EstadoUsuario, type Usuario } from '../../usuarios/entities/usuario.entity';
+import { EstadoUsuario, Rol, type Usuario } from '../../usuarios/entities/usuario.entity';
 import { LoginDto } from '../dto/login.dto';
 import { RefreshTokenDto } from '../dto/refresh-token.dto';
 import { RegistroDto } from '../dto/registro.dto';
@@ -38,8 +39,25 @@ export class AuthService {
   async registrar(dto: RegistroDto): Promise<{ alias: string }> {
     const correo = dto.correo.trim().toLowerCase();
 
-    if (await this.usuarioDao.existeCorreoOCedula(correo, dto.cedula)) {
-      throw new ConflictException('El correo o la cedula ya estan registrados');
+    if (!esCorreoInstitucional(correo)) {
+      throw new BadRequestException('El correo debe ser institucional');
+    }
+
+    const [porCorreo, porCedula] = await Promise.all([
+      this.usuarioDao.buscarPorCorreo(correo),
+      this.usuarioDao.buscarPorCedula(dto.cedula.trim()),
+    ]);
+
+    if (porCorreo && porCedula) {
+      throw new ConflictException('El correo y la cedula ya estan registrados');
+    }
+
+    if (porCorreo) {
+      throw new ConflictException('El correo ya esta registrado');
+    }
+
+    if (porCedula) {
+      throw new ConflictException('La cedula ya esta registrada');
     }
 
     const usuario = await this.usuarioDao.crear({
@@ -72,6 +90,27 @@ export class AuthService {
     }
 
     this.validarEstado(usuario);
+
+    return this.generarTokens(usuario);
+  }
+
+  /**
+   * Login exclusivo del panel de administracion: valida credenciales y ademas
+   * exige el rol Administrador. Cualquier otro rol recibe 403.
+   */
+  async loginAdmin(dto: LoginDto): Promise<RespuestaAuth> {
+    const usuario = await this.usuarioDao.buscarPorCorreoConContrasena(dto.correo);
+
+    if (!usuario || !(await bcrypt.compare(dto.contrasena, usuario.contrasena))) {
+      throw new UnauthorizedException('Credenciales invalidas');
+    }
+
+    if (usuario.rol !== Rol.Administrador) {
+      throw new ForbiddenException('Esta area es exclusiva de administradores');
+    }
+
+    this.validarEstado(usuario);
+    this.logger.log(`Acceso al panel de administracion concedido (${usuario.correo})`);
 
     return this.generarTokens(usuario);
   }

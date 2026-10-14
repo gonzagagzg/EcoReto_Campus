@@ -7,6 +7,7 @@ import { EstadoReto, Reto } from '../../retos/entities/reto.entity';
 import { RetoParticipante } from '../../retos/entities/reto_participante.entity';
 import { Soporte } from '../../soporte/entities/soporte.entity';
 import { EstadoUsuario, type Rol, Usuario } from '../../usuarios/entities/usuario.entity';
+import { HistorialPremio } from '../../premios/entities/historial_premio.entity';
 
 export interface ResumenAdmin {
   totalUsuarios: number;
@@ -37,9 +38,28 @@ export interface ParticipacionHistorial {
   imagenEvidencia: string;
   estadoParticipacion: EstadoEvaluacion;
   idUsuarioRevisor: number | null;
+  aliasRevisor: string | null;
   observacionRevision: string | null;
+  respuestaEvidencia: string | null;
   fechaRevision: Date | null;
+  fechaCreacion: Date;
   diasCumplidos: number | null;
+}
+
+/**
+ * Una fila del historial de canjes con nombres resueltos.
+ */
+export interface HistorialPremioAdmin {
+  idHistorialPremio: number;
+  idPremio: number;
+  nombrePremio: string;
+  idUsuario: number;
+  nombreUsuario: string;
+  aliasUsuario: string;
+  fechaCanje: Date;
+  estadoCanjePremio: string;
+  fechaReclamo: Date | null;
+  observacionCanje: string | null;
 }
 
 @Injectable()
@@ -53,6 +73,8 @@ export class AdminDao {
     private readonly retosParticipantesRepo: Repository<RetoParticipante>,
     @InjectRepository(Premio) private readonly premioRepo: Repository<Premio>,
     @InjectRepository(Soporte) private readonly soporteRepo: Repository<Soporte>,
+    @InjectRepository(HistorialPremio)
+    private readonly historialPremioRepo: Repository<HistorialPremio>,
   ) {}
 
   async resumen(): Promise<ResumenAdmin> {
@@ -108,8 +130,9 @@ export class AdminDao {
   async resumirParticipaciones(items: Participacion[]): Promise<ParticipacionHistorial[]> {
     const idsUsuario = [...new Set(items.map((p) => p.idUsuario))];
     const idsInscripcion = [...new Set(items.map((p) => p.idRetosParticipantes))];
+    const idsRevisor = [...new Set(items.map((p) => p.idUsuarioRevisor).filter((id): id is number => id !== null))];
 
-    const [usuarios, inscripciones] = await Promise.all([
+    const [usuarios, inscripciones, revisores] = await Promise.all([
       idsUsuario.length > 0
         ? this.usuarioRepo.find({
             where: { idUsuario: In(idsUsuario) },
@@ -122,10 +145,19 @@ export class AdminDao {
             relations: { reto: true },
           })
         : Promise.resolve<RetoParticipante[]>([]),
+      idsRevisor.length > 0
+        ? this.usuarioRepo.find({
+            where: { idUsuario: In(idsRevisor) },
+            select: { idUsuario: true, alias: true },
+          })
+        : Promise.resolve<Usuario[]>([]),
     ]);
 
     const nombresUsuario = new Map(
       usuarios.map((u) => [u.idUsuario, `${u.nombre} ${u.apellido}`.trim()]),
+    );
+    const aliasRevisor = new Map(
+      revisores.map((u) => [u.idUsuario, u.alias]),
     );
     const retos = new Map(
       inscripciones.map((i) => [i.idRetosParticipantes, i] as const),
@@ -144,11 +176,111 @@ export class AdminDao {
         imagenEvidencia: p.imagenEvidencia,
         estadoParticipacion: p.estadoParticipacion,
         idUsuarioRevisor: p.idUsuarioRevisor,
+        aliasRevisor: p.idUsuarioRevisor ? aliasRevisor.get(p.idUsuarioRevisor) ?? null : null,
         observacionRevision: p.observacionRevision,
+        respuestaEvidencia: p.respuestaEvidencia,
         fechaRevision: p.fechaRevision,
+        fechaCreacion: p.fechaCreacion,
         diasCumplidos: p.diasCumplidos,
       };
     });
+  }
+
+  /**
+   * Lista el historial de canjes con nombres de usuario y premio resueltos.
+   */
+  async listarHistorialPremios(pagina: number, limite: number, busqueda?: string, estadoCanjePremio?: string): Promise<{
+    items: HistorialPremioAdmin[];
+    total: number;
+  }> {
+    const skip = (pagina - 1) * limite;
+
+    const qb = this.historialPremioRepo
+      .createQueryBuilder('hp')
+      .innerJoin('hp.premio', 'premio')
+      .innerJoin('hp.usuario', 'usuario')
+      .select([
+        'hp.id_historial_premio AS "idHistorialPremio"',
+        'hp.id_premio AS "idPremio"',
+        'premio.nombre_premio AS "nombrePremio"',
+        'hp.id_usuario AS "idUsuario"',
+        "TRIM(CONCAT(usuario.nombre, ' ', usuario.apellido)) AS \"nombreUsuario\"",
+        'usuario.alias AS "aliasUsuario"',
+        'hp.fecha_canje AS "fechaCanje"',
+        'hp.fecha_reclamo AS "fechaReclamo"',
+        'hp.observacion_canje AS "observacionCanje"',
+        'hp.estado_canje_premio AS "estadoCanjePremio"',
+      ])
+      .orderBy('hp.fecha_canje', 'DESC');
+
+    if (busqueda && busqueda.trim()) {
+      const term = `%${busqueda.trim()}%`;
+      qb.andWhere(
+        '(premio.nombre_premio ILIKE :term OR usuario.nombre ILIKE :term OR usuario.apellido ILIKE :term OR usuario.alias ILIKE :term)',
+        { term },
+      );
+    }
+
+    if (estadoCanjePremio) {
+      qb.andWhere('hp.estado_canje_premio = :estadoCanjePremio', { estadoCanjePremio });
+    }
+
+    const [items, total] = await Promise.all([
+      qb.skip(skip).take(limite).getRawMany<HistorialPremioAdmin>(),
+      qb.getCount(),
+    ]);
+
+    return { items, total };
+  }
+
+  /**
+   * Actualiza el estado de un canje de premio.
+   * Si el nuevo estado es 'reclamado', registra la fecha actual en fecha_reclamo.
+   * Si el nuevo estado es 'negado', devuelve los puntos al usuario (solo puntos, no historial_puntos).
+   */
+  async actualizarEstadoCanjePremio(
+    idHistorialPremio: number,
+    estadoCanjePremio: string,
+    observacionCanje?: string,
+  ): Promise<void> {
+    // Obtener el canje actual para saber el estado anterior, usuario y puntos
+    const canjeActual = await this.historialPremioRepo.findOne({
+      where: { idHistorialPremio },
+      relations: { premio: true },
+    });
+
+    if (!canjeActual) {
+      throw new Error(`Canje #${idHistorialPremio} no encontrado`);
+    }
+
+    const estadoAnterior = canjeActual.estadoCanjePremio;
+    const puntosPremio = canjeActual.premio?.puntosPremio ?? 0;
+    const idUsuario = canjeActual.idUsuario;
+
+    const updateData: { estadoCanjePremio: string; fechaReclamo?: Date; observacionCanje?: string } = {
+      estadoCanjePremio,
+    };
+
+    if (estadoCanjePremio === 'reclamado') {
+      updateData.fechaReclamo = new Date();
+    }
+
+    if (observacionCanje !== undefined) {
+      updateData.observacionCanje = observacionCanje;
+    }
+
+    // Si se cambia a 'negado' y no lo era antes, devolver puntos al usuario
+    // Solo se suma a 'puntos' (disponibles), NO a 'historial_puntos' (acumulado histórico)
+    if (estadoCanjePremio === 'negado' && estadoAnterior !== 'negado' && puntosPremio > 0) {
+      await this.usuarioRepo.increment({ idUsuario }, 'puntos', puntosPremio);
+    }
+
+    // Si se cambia DE 'negado' a otro estado, quitar los puntos que se devolvieron
+    if (estadoAnterior === 'negado' && estadoCanjePremio !== 'negado' && puntosPremio > 0) {
+      await this.usuarioRepo.decrement({ idUsuario }, 'puntos', puntosPremio);
+    }
+
+    await this.historialPremioRepo.update(idHistorialPremio, updateData);
   }
 
   private async contarPorCampo<T extends ObjectLiteral>(

@@ -1,0 +1,77 @@
+/* Texto largo del ticket recortado a dos líneas dentro de la tabla. */
+.resumen {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  max-width: 34ch;
+}
+
+.detalle {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 0.7rem 1rem;
+  margin: 1rem 0;
+  padding: 0.85rem;
+  background: var(--superficie-2);
+  border: var(--grosor) solid var(--borde);
+  border-radius: var(--radio-chico);
+}
+
+.detalle div {
+  min-width: 0;
+}
+
+.detalle dt {
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--texto-tenue);
+}
+
+.detalle dd {
+  margin: 0.2rem 0 0;
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+
+.nota {
+  margin: 1rem 0;
+  padding: 0.7rem 0.85rem;
+  background: var(--verde-suave);
+  border-left: 4px solid var(--verde);
+  border-radius: var(--radio-chico);
+}
+
+.nota p {
+  margin: 0.25rem 0 0;
+  font-weight: 700;
+}
+
+.adjunta {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.75rem;
+  background: var(--superficie-2);
+  border: var(--grosor) dashed var(--borde-fuerte);
+  border-radius: var(--radio-chico);
+}
+
+.adjunta__foto {
+  width: 100%;
+  max-height: 320px;
+  object-fit: contain;
+  background: var(--blanco);
+  border: var(--grosor) solid var(--negro);
+  border-radius: var(--radio-chico);
+}
+
+.textarea {
+  min-height: 96px;
+  resize: vertical;
+  font: inherit;
+}

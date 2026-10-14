@@ -9,13 +9,20 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { In, Repository } from 'typeorm';
 import { writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
+import { rm } from 'node:fs/promises';
 import type { ArchivoSubido } from '../../../common/interfaces/archivo-subido.interface';
-import { buildRetoDir, buildRetoNombreArchivo, ensureUploadDir } from '../../../config/uploads.config';
+import {
+  buildRetoDir,
+  buildRetoNombreArchivo,
+  buildRetoPathRelativo,
+  ensureUploadDir,
+  eliminarCarpeta,
+} from '../../../config/uploads.config';
 import { Rol, Usuario } from '../../usuarios/entities/usuario.entity';
 import { ActualizarRetoDto } from '../dto/actualizar-reto.dto';
 import { CrearRetoDto } from '../dto/crear-reto.dto';
 import { RetoQueryDto } from '../dto/reto-query.dto';
-import { type FiltrosReto, RETO_DAO, type RetoDaoInterface } from '../daos/reto.dao.interface';
+import { RetoParticipacionActual, type FiltrosReto, RETO_DAO, type RetoDaoInterface } from '../daos/reto.dao.interface';
 import { EstadoReto, type Reto } from '../entities/reto.entity';
 import { RetoParticipante } from '../entities/reto_participante.entity';
 import {
@@ -24,6 +31,7 @@ import {
   calcularPuntosParticipar,
   DIAS_MAXIMOS_RETO,
   DIAS_MINIMOS_RETO,
+  finDelDia,
 } from '../reglas-reto';
 
 export interface Solicitante {
@@ -67,10 +75,13 @@ export class RetosService {
     idUsuarioCreador: number,
     imagen?: ArchivoSubido,
   ): Promise<Reto> {
-    const puntaje = this.calcularPuntaje(dto.fechaLimite);
+    // El limite rige hasta las 23:59:59 del dia indicado, venga como venga del cliente.
+    const fechaLimite = finDelDia(dto.fechaLimite);
+    const puntaje = this.calcularPuntaje(fechaLimite);
 
     const reto = await this.retoDao.crear({
       ...dto,
+      fechaLimite,
       idUsuarioCreador,
       estadoReto: EstadoReto.PendienteAprobacion,
       imagenReto: null,
@@ -150,9 +161,10 @@ export class RetosService {
       return this.retoDao.actualizar(idReto, dto);
     }
 
-    const puntaje = this.calcularPuntaje(dto.fechaLimite, reto.fechaCreacion);
+    const fechaLimite = finDelDia(dto.fechaLimite);
+    const puntaje = this.calcularPuntaje(fechaLimite, reto.fechaCreacion);
 
-    return this.retoDao.actualizar(idReto, { ...dto, ...puntaje });
+    return this.retoDao.actualizar(idReto, { ...dto, fechaLimite, ...puntaje });
   }
 
   async cambiarEstado(idReto: number, estadoReto: EstadoReto): Promise<Reto> {
@@ -201,6 +213,10 @@ export class RetosService {
 
   contarPorEstado() {
     return this.retoDao.contarPorEstado();
+  }
+
+  async listarParticipacionesActuales(idUsuario: number): Promise<RetoParticipacionActual[]> {
+    return this.retoDao.listarParticipacionesActuales(idUsuario);
   }
 
   private esStaff(rol: Rol): boolean {
@@ -258,6 +274,33 @@ export class RetosService {
 
     await writeFile(join(directorio, nombreArchivo), imagen.buffer);
 
-    return join('Imagenesretos', 'Retos', String(idReto), nombreArchivo);
+    return buildRetoPathRelativo(idReto);
+  }
+
+  async subirImagen(idReto: number, imagen: ArchivoSubido, solicitante: Solicitante): Promise<{ imagenReto: string }> {
+    const reto = await this.obtener(idReto);
+    this.validarPermiso(reto, solicitante);
+
+    const imagenReto = await this.guardarImagen(idReto, imagen);
+
+    await this.retoDao.actualizar(idReto, { imagenReto });
+
+    return { imagenReto };
+  }
+
+  async eliminarImagen(idReto: number, solicitante: Solicitante): Promise<{ eliminado: boolean }> {
+    const reto = await this.obtener(idReto);
+    this.validarPermiso(reto, solicitante);
+
+    if (!reto.imagenReto) {
+      return { eliminado: false };
+    }
+
+    const directorio = buildRetoDir(idReto);
+    await eliminarCarpeta(directorio);
+
+    await this.retoDao.actualizar(idReto, { imagenReto: null });
+
+    return { eliminado: true };
   }
 }

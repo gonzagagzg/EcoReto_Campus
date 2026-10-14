@@ -1,0 +1,78 @@
+@if (cargando()) {
+  <app-loader texto="Cargando reto..." />
+} @else if (enviado()) {
+  <div class="vacio">
+    <span class="vacio__icono" aria-hidden="true">OK</span>
+    <p><strong>¡Evidencia enviada!</strong></p>
+    <p class="chico">
+      El equipo de EcoReto la va a revisar. Cuando sea aprobada suma para el reto: al cubrir todos
+      los días se pagan los puntos al instante.
+    </p>
+    <div class="fila fila--centrar">
+      <a class="btn btn--primario" routerLink="/inicio">Volver al inicio</a>
+      @if (reto(); as r) {
+        <a class="btn" [routerLink]="['/retos', r.idReto]">Ver el reto</a>
+      }
+    </div>
+  </div>
+} @else {
+  <div class="apilar">
+    <a class="volver" [routerLink]="['/retos', reto()?.idReto]">&larr; Volver al reto</a>
+
+    <app-alerta [mensaje]="error()" tipo="error" />
+
+    <section class="tarjeta">
+      <div class="seccion-titulo">
+        <div>
+          <h1>Subir evidencia</h1>
+          <p class="tenue chico">{{ reto()?.nombreReto }}</p>
+        </div>
+        @if (reto(); as r) {
+          <span class="insignia insignia--oro">{{ r.puntosCompletado }} pts</span>
+        }
+      </div>
+
+      <form (ngSubmit)="enviar()" novalidate>
+        <label class="zona-archivo" [class.zona-archivo--llena]="!!vistaPrevia">
+          @if (vistaPrevia) {
+            <img [src]="vistaPrevia" alt="Vista previa de la evidencia" />
+            <span class="chico tenue">Haz clic para cambiar la foto</span>
+          } @else {
+            <span class="zona-archivo__icono" aria-hidden="true">+</span>
+            <strong>Elige una imagen</strong>
+            <span class="chico tenue">JPG, PNG o WebP · hasta 5 MB</span>
+          }
+          <input type="file" accept="image/*" (change)="seleccionar($event)" hidden />
+        </label>
+
+        @if (archivo) {
+          <div class="fila fila--entre archivo-elegido">
+            <span class="chico tenue">{{ archivo.name }}</span>
+            <button type="button" class="btn btn--chico btn--fantasma" (click)="quitar()">
+              Quitar
+            </button>
+          </div>
+        }
+
+        <div class="campo">
+          <label for="comentario">Comentario <span class="opcional">(opcional)</span></label>
+          <textarea
+            id="comentario"
+            name="comentario"
+            class="entrada"
+            rows="4"
+            placeholder="Cuentanos cómo te fue con el reto..."
+            [(ngModel)]="comentario"
+          ></textarea>
+        </div>
+
+        <div class="fila fila--entre">
+          <button type="button" class="btn btn--fantasma" (click)="cancelar()">Cancelar</button>
+          <button type="submit" class="btn btn--primario" [disabled]="procesando() || !archivo">
+            {{ procesando() ? 'Enviando...' : 'Enviar evidencia' }}
+          </button>
+        </div>
+      </form>
+    </section>
+  </div>
+}

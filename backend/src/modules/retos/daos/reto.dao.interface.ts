@@ -16,6 +16,20 @@ export interface FiltrosReto {
   take?: number;
 }
 
+export interface RetoParticipacionActual {
+  idRetosParticipantes: number;
+  idReto: number;
+  nombreReto: string;
+  imagenReto: string | null;
+  descripcionReto: string;
+  categoria: string;
+  fechaLimite: Date;
+  dificultad: Dificultad;
+  puntosCompletado: number;
+  puntosParticipar: number;
+  estadoReto: EstadoReto;
+}
+
 export interface RetoDaoInterface {
   crear(datos: DeepPartial<Reto>): Promise<Reto>;
   buscarPorId(idReto: number): Promise<Reto | null>;
@@ -30,4 +44,6 @@ export interface RetoDaoInterface {
   contarPorEstado(): Promise<{ estadoReto: EstadoReto; total: number }[]>;
   finalizarVencidos(fecha: Date): Promise<number>;
   listarIdsVencidos(fecha: Date): Promise<number[]>;
+  listarPorDificultad(dificultad: Dificultad): Promise<Reto[]>;
+  listarParticipacionesActuales(idUsuario: number): Promise<RetoParticipacionActual[]>;
 }

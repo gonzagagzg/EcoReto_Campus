@@ -58,6 +58,8 @@ export interface UsuarioDaoInterface {
 
 export interface ProgresoUsuario {
   puntos: number;
+  /** Total ganado histórico (saldo disponible + canjeado); lo usa el ranking. */
+  historialPuntos: number;
   retosCumplidos: number;
   nivel: number;
 }

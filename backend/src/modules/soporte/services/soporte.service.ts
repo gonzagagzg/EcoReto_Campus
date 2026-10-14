@@ -76,7 +76,11 @@ export class SoporteService {
    * los datos sensibles (nombre, apellido, cedula, correo) que el usuario no puede editar solo.
    * Primero se validan todos los valores y despues se persisten, para no dejar el perfil a medias.
    */
-  async responder(idSoporte: number, dto: ResponderSoporteDto): Promise<Soporte> {
+  async responder(
+    idSoporte: number,
+    dto: ResponderSoporteDto,
+    idRevisor: number,
+  ): Promise<Soporte> {
     const ticket = await this.obtener(idSoporte);
 
     if (dto.estadoSoporte === EstadoEvaluacion.Enviado) {
@@ -93,7 +97,7 @@ export class SoporteService {
       await this.usuarioDao.actualizar(ticket.idUsuario, cambios);
     }
 
-    return this.soporteDao.atender(idSoporte, dto.estadoSoporte);
+    return this.soporteDao.atender(idSoporte, dto.estadoSoporte, idRevisor, dto.respuestaSoporte);
   }
 
   contarPorEstado() {

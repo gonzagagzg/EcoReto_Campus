@@ -74,7 +74,10 @@ export class PremiosService {
     return this.premiosDao.actualizar(idPremio, dto);
   }
 
-  /** Sube la imagen del premio a disco y devuelve la ruta relativa para BD. */
+  /**
+   * Sube la imagen del premio a disco y la persiste en BD, para que el
+   * siguiente GET ya devuelva `imagenPremio` sin necesidad de un PUT extra.
+   */
   async subirImagen(
     idPremio: number,
     archivo: ArchivoSubido,
@@ -83,7 +86,9 @@ export class PremiosService {
     const dir = ensureUploadDir(buildPremioDir(idPremio));
     const nombreArchivo = buildPremioNombreArchivo(idPremio);
     await writeFile(join(dir, nombreArchivo), archivo.buffer);
-    return buildPremioPathRelativo(idPremio);
+    const ruta = buildPremioPathRelativo(idPremio);
+    await this.premiosDao.actualizar(idPremio, { imagenPremio: ruta });
+    return ruta;
   }
 
   async eliminarImagen(idPremio: number): Promise<void> {

@@ -3,7 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { type DeepPartial, LessThan, type Repository } from 'typeorm';
 import { Dificultad, EstadoReto, Reto } from '../entities/reto.entity';
 import { RetoParticipante } from '../entities/reto_participante.entity';
-import type { FiltrosReto, RetoDaoInterface } from './reto.dao.interface';
+import type { FiltrosReto, RetoDaoInterface, RetoParticipacionActual } from './reto.dao.interface';
 
 @Injectable()
 export class RetoDao implements RetoDaoInterface {
@@ -178,5 +178,41 @@ export class RetoDao implements RetoDaoInterface {
 
   listarPorDificultad(dificultad: Dificultad): Promise<Reto[]> {
     return this.retoRepo.find({ where: { dificultad } });
+  }
+
+  async listarParticipacionesActuales(idUsuario: number): Promise<RetoParticipacionActual[]> {
+    const query = this.participanteRepo
+      .createQueryBuilder('participante')
+      .innerJoin('participante.reto', 'reto')
+      .select([
+        'participante.id_retos_participantes AS "idRetosParticipantes"',
+        'reto.id_reto AS "idReto"',
+        'reto.nombre_reto AS "nombreReto"',
+        'reto.imagen_reto AS "imagenReto"',
+        'reto.descripcion_reto AS "descripcionReto"',
+        'reto.categoria AS "categoria"',
+        'reto.fecha_limite AS "fechaLimite"',
+        'reto.dificultad AS "dificultad"',
+        'reto.puntos_completado AS "puntosCompletado"',
+        'reto.puntos_participar AS "puntosParticipar"',
+        'reto.estado_reto AS "estadoReto"',
+      ])
+      .where('participante.id_usuario = :idUsuario', { idUsuario })
+      .andWhere('reto.estado_reto = :estadoActivo', { estadoActivo: EstadoReto.Activo })
+      .orderBy('reto.fecha_limite', 'ASC');
+
+    const filas = await query.getRawMany<RetoParticipacionActual>();
+
+    // Un usuario puede participar varias veces del mismo reto (num_participacion);
+    // se muestra una sola tarjeta por reto con la participación más reciente.
+    const porReto = new Map<number, RetoParticipacionActual>();
+    for (const fila of filas) {
+      const previa = porReto.get(fila.idReto);
+      if (!previa || fila.idRetosParticipantes > previa.idRetosParticipantes) {
+        porReto.set(fila.idReto, fila);
+      }
+    }
+
+    return [...porReto.values()];
   }
 }

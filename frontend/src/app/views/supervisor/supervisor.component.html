@@ -1,0 +1,340 @@
+<div class="apilar">
+  <div class="seccion-titulo">
+    <div>
+      <h1>Panel de supervisión</h1>
+      <p class="tenue chico">Retos, evidencias y cuentas esperando revisión.</p>
+    </div>
+    <button type="button" class="btn btn--chico" (click)="cargarTodo()">Actualizar</button>
+  </div>
+
+  <app-alerta [mensaje]="error()" tipo="error" />
+  <app-alerta [mensaje]="exito()" tipo="ok" />
+
+  <nav class="pestanas" aria-label="Secciones de supervisión">
+    <button type="button" [class.activa]="pestana() === 'tablero'" (click)="irA('tablero')">
+      Tablero
+    </button>
+    <button type="button" [class.activa]="pestana() === 'retos'" (click)="irA('retos')">
+      Retos
+      <span class="contador">{{ panel()?.retosPendientesAprobacion ?? 0 }}</span>
+    </button>
+    <button type="button" [class.activa]="pestana() === 'evidencias'" (click)="irA('evidencias')">
+      Evidencias
+      <span class="contador">{{ panel()?.evidenciasPendientes ?? 0 }}</span>
+    </button>
+    <button type="button" [class.activa]="pestana() === 'usuarios'" (click)="irA('usuarios')">
+      Usuarios
+      <span class="contador">{{ panel()?.usuariosPendientesActivacion ?? 0 }}</span>
+    </button>
+  </nav>
+
+  @if (cargando()) {
+    <app-loader texto="Cargando el panel..." />
+  } @else {
+    @switch (pestana()) {
+      @case ('tablero') {
+        @if (panel(); as p) {
+          <div class="malla malla--4">
+            <div class="panel-estadistica">
+              <span class="rotulo">Retos por aprobar</span>
+              <span class="valor">{{ p.retosPendientesAprobacion }}</span>
+            </div>
+            <div class="panel-estadistica panel-estadistica--cian">
+              <span class="rotulo">Evidencias pendientes</span>
+              <span class="valor">{{ p.evidenciasPendientes }}</span>
+            </div>
+            <div class="panel-estadistica panel-estadistica--oro">
+              <span class="rotulo">Cuentas por activar</span>
+              <span class="valor">{{ p.usuariosPendientesActivacion }}</span>
+            </div>
+            <div class="panel-estadistica">
+              <span class="rotulo">Tickets de soporte</span>
+              <span class="valor">{{ p.ticketsSoportePendientes }}</span>
+            </div>
+          </div>
+
+          <div class="malla malla--2">
+            <section class="tarjeta">
+              <div class="seccion-titulo"><h2>Retos por estado</h2></div>
+              <div class="tabla-envoltorio">
+                <table class="tabla">
+                  <thead>
+                    <tr>
+                      <th>Estado</th>
+                      <th>Total</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    @for (fila of p.retosPorEstado; track fila.estadoReto) {
+                      <tr>
+                        <td><app-insignia [valor]="fila.estadoReto" /></td>
+                        <td>
+                          <strong>{{ fila.total }}</strong>
+                        </td>
+                      </tr>
+                    }
+                  </tbody>
+                </table>
+              </div>
+            </section>
+
+            <section class="tarjeta">
+              <div class="seccion-titulo"><h2>Evidencias por estado</h2></div>
+              <div class="tabla-envoltorio">
+                <table class="tabla">
+                  <thead>
+                    <tr>
+                      <th>Estado</th>
+                      <th>Total</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    @for (fila of p.participacionesPorEstado; track fila.estado) {
+                      <tr>
+                        <td><app-insignia [valor]="fila.estado" /></td>
+                        <td>
+                          <strong>{{ fila.total }}</strong>
+                        </td>
+                      </tr>
+                    }
+                  </tbody>
+                </table>
+              </div>
+            </section>
+          </div>
+        }
+      }
+
+      @case ('retos') {
+        @if (retos().length === 0) {
+          <div class="vacio">
+            <span class="vacio__icono" aria-hidden="true">OK</span>
+            <p><strong>No hay retos esperando aprobación</strong></p>
+            <p class="chico">Los retos nuevos van a aparecer acá.</p>
+          </div>
+        } @else {
+          <div class="malla malla--2">
+            @for (reto of retos(); track reto.idReto) {
+              <article class="tarjeta cola">
+                <div class="fila fila--entre">
+                  <h3>{{ reto.nombreReto }}</h3>
+                  <app-insignia [valor]="reto.dificultad" />
+                </div>
+
+                <div class="fila">
+                  <span class="insignia insignia--neutra">{{ reto.categoria }}</span>
+                  <app-insignia [valor]="reto.estadoReto" />
+                  <span class="chico tenue">Hasta {{ fecha(reto.fechaLimite) }}</span>
+                </div>
+
+                <p class="chico tenue">{{ reto.descripcionReto }}</p>
+
+                <div class="fila fila--entre">
+                  <span class="puntos">
+                    <span class="numero">{{ reto.puntosCompletado }}</span>
+                    <span class="unidad">pts</span>
+                  </span>
+
+                  <span class="acciones">
+                    <button
+                      type="button"
+                      class="btn btn--primario btn--chico"
+                      [disabled]="procesando()"
+                      (click)="pedirDecision(reto, EstadoReto.Activo)"
+                    >
+                      Aprobar
+                    </button>
+                    <button
+                      type="button"
+                      class="btn btn--peligro btn--chico"
+                      [disabled]="procesando()"
+                      (click)="pedirDecision(reto, EstadoReto.Negado)"
+                    >
+                      Negar
+                    </button>
+                    <button
+                      type="button"
+                      class="btn btn--secundario btn--chico"
+                      [disabled]="procesando()"
+                      (click)="pedirDecision(reto, EstadoReto.Bloqueado)"
+                    >
+                      Bloquear
+                    </button>
+                  </span>
+                </div>
+              </article>
+            }
+          </div>
+        }
+      }
+
+      @case ('evidencias') {
+        @if (evidencias().length === 0) {
+          <div class="vacio">
+            <span class="vacio__icono" aria-hidden="true">OK</span>
+            <p><strong>No hay evidencias pendientes</strong></p>
+            <p class="chico">Las evidencias que suban los estudiantes aparecen acá.</p>
+          </div>
+        } @else {
+          <div class="malla malla--2">
+            @for (evidencia of evidencias(); track evidencia.idParticipacion) {
+              <article class="tarjeta cola">
+                <div class="fila fila--entre">
+                  <h3>{{ evidencia.nombreReto }}</h3>
+                  <app-insignia [valor]="evidencia.estadoParticipacion" />
+                </div>
+
+                <div class="evidencia-caja">
+                  <span class="evidencia-caja__aviso">Imagen no disponible</span>
+                  <img
+                    class="evidencia-foto"
+                    [src]="evidencia.evidencia | imagenUrl"
+                    alt="Evidencia enviada por la persona participante"
+                    appImagenRota
+                  />
+                </div>
+
+                <p class="chico tenue">
+                  {{ evidencia.nombreUsuario }} · registro #{{ evidencia.idParticipacion }}
+                </p>
+
+                @if (revisando() === evidencia.idParticipacion) {
+                  <div class="revision">
+                    <div class="campo">
+                      <label for="estado">Decisión</label>
+                      <select
+                        id="estado"
+                        name="formEstado"
+                        class="entrada"
+                        [(ngModel)]="formEstado"
+                      >
+                        <option [value]="EstadoEvaluacion.Aprobado">Aprobar</option>
+                        <option [value]="EstadoEvaluacion.Negado">Rechazar</option>
+                        <option [value]="EstadoEvaluacion.Bloqueado">
+                          Bloquear (pedir corrección)
+                        </option>
+                      </select>
+                    </div>
+
+                    <div class="campo">
+                      <label for="obs">Observación</label>
+                      <textarea
+                        id="obs"
+                        name="formObservacion"
+                        class="entrada"
+                        rows="3"
+                        maxlength="1000"
+                        placeholder="Obligatoria si no apruebas. Ej: La foto no muestra el medidor."
+                        [(ngModel)]="formObservacion"
+                      ></textarea>
+                    </div>
+
+                    @if (formEstado === EstadoEvaluacion.Aprobado) {
+                      <div class="campo">
+                        <label for="dias">Días cumplidos sobre los estimados</label>
+                        <input
+                          id="dias"
+                          name="formDias"
+                          type="number"
+                          class="entrada"
+                          min="0"
+                          [(ngModel)]="formDias"
+                        />
+                        <span class="chico tenue">
+                          Define el pago: 100% si se cumplen los días estimados, 50% si no.
+                        </span>
+                      </div>
+                    }
+
+                    <div class="fila fila--fin">
+                      <button
+                        type="button"
+                        class="btn btn--fantasma btn--chico"
+                        (click)="cerrarRevision()"
+                      >
+                        Cancelar
+                      </button>
+                      <button
+                        type="button"
+                        class="btn btn--primario btn--chico"
+                        [disabled]="procesando()"
+                        (click)="revisar(evidencia)"
+                      >
+                        {{ procesando() ? 'Guardando...' : 'Confirmar revisión' }}
+                      </button>
+                    </div>
+                  </div>
+                } @else {
+                  <div class="fila fila--entre">
+                    <span class="chico tenue">Revisada {{ fecha(evidencia.fechaRevision) }}</span>
+                    <button
+                      type="button"
+                      class="btn btn--cian btn--chico"
+                      (click)="abrirRevision(evidencia)"
+                    >
+                      Revisar
+                    </button>
+                  </div>
+                }
+              </article>
+            }
+          </div>
+        }
+      }
+
+      @case ('usuarios') {
+        @if (usuarios().length === 0) {
+          <div class="vacio">
+            <span class="vacio__icono" aria-hidden="true">OK</span>
+            <p><strong>No hay cuentas esperando activación</strong></p>
+            <p class="chico">Los registros nuevos aparecen acá.</p>
+          </div>
+        } @else {
+          <div class="malla malla--3">
+            @for (usuario of usuarios(); track usuario.idUsuario) {
+              <article class="tarjeta cola">
+                <div class="fila fila--entre">
+                  <h3>{{ usuario.alias }}</h3>
+                  <app-insignia [valor]="usuario.estado" />
+                </div>
+
+                <p class="chico tenue">{{ usuario.nombre }} {{ usuario.apellido }}</p>
+                <p class="chico tenue">{{ usuario.correo }}</p>
+
+                @if (usuario.carrera) {
+                  <span class="insignia insignia--neutra">{{ usuario.carrera }}</span>
+                }
+
+                @if (esAdministrador) {
+                  <button
+                    type="button"
+                    class="btn btn--primario btn--ancho"
+                    [disabled]="procesando()"
+                    (click)="activar(usuario)"
+                  >
+                    Activar cuenta
+                  </button>
+                } @else {
+                  <p class="chico tenue">Solo un Administrador puede activar la cuenta.</p>
+                }
+              </article>
+            }
+          </div>
+        }
+      }
+    }
+  }
+
+  @if (retoPorDecidir(); as reto) {
+    <app-modal-confirmacion
+      [titulo]="etiquetaDecision + ' reto'"
+      [mensaje]="
+        'Se cambiará el estado de «' + reto.nombreReto + '». Esta acción queda registrada.'
+      "
+      [textoConfirmar]="etiquetaDecision"
+      [peligro]="decisionPendiente !== EstadoReto.Activo"
+      (confirmar)="confirmarDecision()"
+      (cancelar)="cancelarDecision()"
+    />
+  }
+</div>

@@ -36,9 +36,17 @@ export class JwtAuthGuard implements CanActivate {
     }
 
     const env = jwtConfig();
-    const payload = await this.jwtService.verifyAsync<TokenPayload>(token, {
-      secret: env.secret,
-    });
+
+    let payload: TokenPayload;
+    try {
+      payload = await this.jwtService.verifyAsync<TokenPayload>(token, {
+        secret: env.secret,
+      });
+    } catch {
+      // Token malformed, firmado con otra clave o expirado: se reporta como 401
+      // para que el cliente limpie la sesion en vez de recibir un 500.
+      throw new UnauthorizedException('Token invalido o expirado');
+    }
 
     if (payload.tipo !== 'access') {
       throw new UnauthorizedException('Token invalido para esta operacion');
@@ -60,12 +68,23 @@ export class JwtAuthGuard implements CanActivate {
   private extraerToken(request: Request): string | undefined {
     const encabezado = request.headers.authorization;
 
-    if (!encabezado) {
-      return undefined;
+    if (encabezado) {
+      const [esquema, token] = encabezado.split(' ');
+      if (esquema?.toLowerCase() === 'bearer' && token) {
+        return token;
+      }
     }
 
-    const [esquema, token] = encabezado.split(' ');
+    // Soporta SSE/EventSource: token via query (access_token o token).
+    const query = request.query as Record<string, unknown> | undefined;
+    const qToken =
+      (query?.token as string | undefined) ||
+      (query?.access_token as string | undefined);
 
-    return esquema?.toLowerCase() === 'bearer' ? token : undefined;
+    if (qToken && typeof qToken === 'string' && qToken.trim().length > 0) {
+      return qToken.trim();
+    }
+
+    return undefined;
   }
 }

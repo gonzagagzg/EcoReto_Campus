@@ -12,8 +12,11 @@ export interface FiltrosSoporte {
   take?: number;
 }
 
-/** Ticket listado junto al nombre de quien lo abrió (nunca exponer el usuario entero). */
-export type TicketSoporte = Soporte & { nombreUsuario: string };
+/** Ticket listado junto al nombre de quien lo abrió y el alias de quien lo revisó. */
+export type TicketSoporte = Soporte & {
+  nombreUsuario: string;
+  aliasRevisor: string | null;
+};
 
 @Injectable()
 export class SoporteDao {
@@ -64,7 +67,7 @@ export class SoporteDao {
     return { items: await this.conNombreDeUsuario(items), total };
   }
 
-  /** Agrega el nombre de quien abrió el ticket sin exponer la fila completa del usuario. */
+  /** Agrega el nombre de quien abrió el ticket y el alias de quien lo revisó. */
   private async conNombreDeUsuario(items: Soporte[]): Promise<TicketSoporte[]> {
     if (items.length === 0) {
       return [];
@@ -82,9 +85,31 @@ export class SoporteDao {
       ]),
     );
 
+    const idsRevisor = [
+      ...new Set(
+        items
+          .map((ticket) => ticket.idRevisorS)
+          .filter((id): id is number => id !== null),
+      ),
+    ];
+    const aliasRevisores = new Map<number, string>(
+      idsRevisor.length === 0
+        ? []
+        : (
+            await this.usuarioRepo.find({
+              where: { idUsuario: In(idsRevisor) },
+              select: { idUsuario: true, alias: true },
+            })
+          ).map((usuario) => [usuario.idUsuario, usuario.alias]),
+    );
+
     return items.map((ticket) =>
       Object.assign(ticket, {
         nombreUsuario: nombres.get(ticket.idUsuario) ?? `Usuario #${ticket.idUsuario}`,
+        aliasRevisor:
+          ticket.idRevisorS === null
+            ? null
+            : aliasRevisores.get(ticket.idRevisorS) ?? `Usuario #${ticket.idRevisorS}`,
       }),
     );
   }
@@ -92,10 +117,16 @@ export class SoporteDao {
   async atender(
     idSoporte: number,
     estadoSoporte: EstadoEvaluacion,
+    idRevisor: number,
+    respuestaSoporte?: string,
   ): Promise<Soporte> {
+    const enviado = estadoSoporte === EstadoEvaluacion.Enviado;
+
     await this.soporteRepo.update(idSoporte, {
       estadoSoporte,
-      fechaAtencion: estadoSoporte === EstadoEvaluacion.Enviado ? null : new Date(),
+      fechaAtencion: enviado ? null : new Date(),
+      idRevisorS: enviado ? null : idRevisor,
+      respuestaSoporte: enviado ? null : respuestaSoporte ?? null,
     });
 
     const ticket = await this.buscarPorId(idSoporte);

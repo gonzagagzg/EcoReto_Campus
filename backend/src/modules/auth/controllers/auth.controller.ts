@@ -23,6 +23,13 @@ export class AuthController {
   }
 
   @Public()
+  @Post('admin/login')
+  @HttpCode(HttpStatus.OK)
+  loginAdmin(@Body() dto: LoginDto) {
+    return this.authService.loginAdmin(dto);
+  }
+
+  @Public()
   @Post('refresh')
   @HttpCode(HttpStatus.OK)
   refrescar(@Body() dto: RefreshTokenDto) {

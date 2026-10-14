@@ -7,6 +7,7 @@ import { Reto } from '../retos/entities/reto.entity';
 import { RetoParticipante } from '../retos/entities/reto_participante.entity';
 import { Soporte } from '../soporte/entities/soporte.entity';
 import { Usuario } from '../usuarios/entities/usuario.entity';
+import { HistorialPremio } from '../premios/entities/historial_premio.entity';
 import { UsuariosModule } from '../usuarios/usuarios.module';
 import { AdminController } from './controllers/admin.controller';
 import { AdminDao } from './daos/admin.dao';
@@ -14,7 +15,7 @@ import { AdminService } from './services/admin.service';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Usuario, Reto, RetoParticipante, Participacion, Premio, Soporte]),
+    TypeOrmModule.forFeature([Usuario, Reto, RetoParticipante, Participacion, Premio, Soporte, HistorialPremio]),
     UsuariosModule,
     ParticipacionesModule,
   ],

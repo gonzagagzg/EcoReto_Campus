@@ -5,7 +5,8 @@ import {
   calcularNivel,
   calcularPuntosCompletado,
   calcularPuntosParticipar,
-  factorCumplimiento,
+  factorPorEvidencias,
+  finDelDia,
   retosRequeridosParaNivel,
 } from './reglas-reto';
 
@@ -17,6 +18,36 @@ function fecha(dias: number): Date {
 }
 
 describe('reglas de reto', () => {
+  describe('finDelDia', () => {
+    it('lleva el limite a las 23:59:59.999 del mismo dia', () => {
+      const limite = finDelDia(new Date(2026, 9, 20, 0, 0, 0, 0));
+
+      expect(limite.getFullYear()).toBe(2026);
+      expect(limite.getMonth()).toBe(9);
+      expect(limite.getDate()).toBe(20);
+      expect(limite.getHours()).toBe(23);
+      expect(limite.getMinutes()).toBe(59);
+      expect(limite.getSeconds()).toBe(59);
+      expect(limite.getMilliseconds()).toBe(999);
+    });
+
+    it('el reto sigue vigente durante todo el dia indicado', () => {
+      const limite = finDelDia(new Date(2026, 9, 20, 10, 30, 0, 0));
+      // Mediodia y ultimo minuto del dia limite: aun no vencido.
+      expect(limite.getTime()).toBeGreaterThan(new Date(2026, 9, 20, 12, 0, 0, 0).getTime());
+      expect(limite.getTime()).toBeGreaterThan(new Date(2026, 9, 20, 23, 59, 0, 0).getTime());
+      // Primer instante del dia siguiente: vencido.
+      expect(limite.getTime()).toBeLessThan(new Date(2026, 9, 21, 0, 0, 0, 0).getTime());
+    });
+
+    it('no muta la fecha original', () => {
+      const original = new Date(2026, 9, 20, 8, 0, 0, 0);
+      finDelDia(original);
+
+      expect(original.getHours()).toBe(8);
+    });
+  });
+
   describe('calcularDiasEstimados', () => {
     it('cuenta los dias continuos hasta la fecha limite', () => {
       expect(calcularDiasEstimados(BASE, fecha(5))).toBe(5);
@@ -78,24 +109,42 @@ describe('reglas de reto', () => {
     });
   });
 
-  describe('factorCumplimiento', () => {
-    it('paga 100 por ciento con todos los dias cumplidos', () => {
-      expect(factorCumplimiento(30, 30)).toBe(1);
-      expect(factorCumplimiento(30, 40)).toBe(1);
+  describe('factorPorEvidencias', () => {
+    it('paga 0 sin evidencias aprobadas', () => {
+      expect(factorPorEvidencias(0, 5)).toBe(0);
+      expect(factorPorEvidencias(0, 1)).toBe(0);
     });
 
-    it('paga 50 por ciento con al menos la mitad de los dias (2 de cada 4)', () => {
-      expect(factorCumplimiento(4, 2)).toBe(0.5);
-      expect(factorCumplimiento(4, 3)).toBe(0.5);
+    it('paga 25% con menos de la mitad de los dias requeridos', () => {
+      expect(factorPorEvidencias(1, 5)).toBe(0.25);
+      expect(factorPorEvidencias(2, 5)).toBe(0.25);
+      expect(factorPorEvidencias(1, 9)).toBe(0.25);
     });
 
-    it('paga 0 por ciento por debajo de la mitad', () => {
-      expect(factorCumplimiento(4, 1)).toBe(0);
-      expect(factorCumplimiento(30, 10)).toBe(0);
+    it('paga 50% con la mitad o mas pero menos del 75%', () => {
+      expect(factorPorEvidencias(3, 5)).toBe(0.5);
+      expect(factorPorEvidencias(6, 9)).toBe(0.5);
+      expect(factorPorEvidencias(2, 4)).toBe(0.5);
     });
 
-    it('sin dias registrados paga el total', () => {
-      expect(factorCumplimiento(30, null)).toBe(1);
+    it('paga 75% con el 75% o mas pero sin completar todos los dias', () => {
+      expect(factorPorEvidencias(4, 5)).toBe(0.75);
+      expect(factorPorEvidencias(7, 9)).toBe(0.75);
+      expect(factorPorEvidencias(3, 4)).toBe(0.75);
+    });
+
+    it('paga 100% al completar todos los dias requeridos', () => {
+      expect(factorPorEvidencias(5, 5)).toBe(1);
+      expect(factorPorEvidencias(9, 9)).toBe(1);
+    });
+
+    it('nunca pasa del 100% aunque haya evidencias de mas', () => {
+      expect(factorPorEvidencias(6, 5)).toBe(1);
+      expect(factorPorEvidencias(12, 9)).toBe(1);
+    });
+
+    it('con dias requeridos invalidos y evidencias aprobadas paga el total', () => {
+      expect(factorPorEvidencias(1, 0)).toBe(1);
     });
   });
 

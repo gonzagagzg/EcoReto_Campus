@@ -3,10 +3,8 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
 import { readdir, writeFile } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
-import { Repository } from 'typeorm';
 import type { ArchivoSubido } from '../../../common/interfaces/archivo-subido.interface';
 import {
   buildEvidenciaDir,
@@ -15,24 +13,24 @@ import {
   buildEvidenciaPrefijo,
   eliminarCarpeta,
   ensureUploadDir,
+  esCarpetaBorradoSegura,
   uploadsRoot,
 } from '../../../config/uploads.config';
 import { RetosService } from '../../retos/services/retos.service';
-import { Rol, Usuario } from '../../usuarios/entities/usuario.entity';
+import { Rol } from '../../usuarios/entities/usuario.entity';
 import { CrearParticipacionDto } from '../dto/crear-participacion.dto';
 import { ParticipacionQueryDto } from '../dto/participacion-query.dto';
 import { RevisionParticipacionDto } from '../dto/revision-participacion.dto';
-import { ParticipacionesDao } from '../daos/participaciones.dao';
+import { ParticipacionesDao, ParticipacionConDetalle } from '../daos/participaciones.dao';
 import { EstadoEvaluacion, type Participacion } from '../entities/participacion.entity';
-import { calcularNivel, factorCumplimiento, calcularDiasEstimados } from '../../retos/reglas-reto';
+import { ProgresoPuntosService } from './progreso-puntos.service';
 
 @Injectable()
 export class ParticipacionesService {
   constructor(
     private readonly participacionesDao: ParticipacionesDao,
     private readonly retosService: RetosService,
-    @InjectRepository(Usuario)
-    private readonly usuarioRepo: Repository<Usuario>,
+    private readonly progresoPuntos: ProgresoPuntosService,
   ) {}
 
   async registrar(
@@ -45,6 +43,12 @@ export class ParticipacionesService {
     }
 
     const participante = await this.retosService.registrarParticipacion(dto.idReto, idUsuario);
+
+    // Verificar si ya subió evidencia hoy para ESTE RETO (no por inscripción)
+    const yaSubioHoy = await this.participacionesDao.existeEvidenciaHoy(dto.idReto, idUsuario);
+    if (yaSubioHoy) {
+      throw new BadRequestException('Ya has subido una evidencia hoy para este reto. Puedes subir otra mañana.');
+    }
 
     const participacion = await this.participacionesDao.crear({
       idRetosParticipantes: participante.idRetosParticipantes,
@@ -91,7 +95,7 @@ export class ParticipacionesService {
     return participacion;
   }
 
-  async listar(
+async listar(
     query: ParticipacionQueryDto,
   ): Promise<{ items: Participacion[]; total: number }> {
     const { pagina, limite, ...filtros } = query;
@@ -103,10 +107,23 @@ export class ParticipacionesService {
     });
   }
 
+  async listarConDetalle(
+    query: ParticipacionQueryDto,
+  ): Promise<{ items: ParticipacionConDetalle[]; total: number }> {
+    const { pagina, limite, ...filtros } = query;
+
+    return this.participacionesDao.listarConDetalle({
+      ...filtros,
+      skip: (pagina - 1) * limite,
+      take: limite,
+    });
+  }
+
   async revisar(
     idParticipacion: number,
     dto: RevisionParticipacionDto,
     idUsuarioRevisor: number,
+    revisorNombre?: string,
   ): Promise<Participacion> {
     const participacion = await this.obtener(idParticipacion);
 
@@ -114,21 +131,18 @@ export class ParticipacionesService {
       throw new BadRequestException('La evidencia debe quedar Aprobado, Negado o Bloqueado');
     }
 
-    const estadoAnterior = participacion.estadoParticipacion;
-    const fueAprobadoAhora = dto.estadoParticipacion === EstadoEvaluacion.Aprobado && estadoAnterior !== EstadoEvaluacion.Aprobado;
-
     const revisada = await this.participacionesDao.revisar(
       idParticipacion,
       dto.estadoParticipacion,
       idUsuarioRevisor,
       dto.observacionRevision,
       dto.diasCumplidos ?? null,
+      dto.respuestaEvidencia,
     );
 
-    // Si se aprobó ahora, otorgar puntos y actualizar nivel del usuario
-    if (fueAprobadoAhora) {
-      await this.otorgarPuntosPorAprobacion(participacion, dto.diasCumplidos ?? null);
-    }
+    // Apruebe o niegue: se recalcula todo el progreso al instante con la misma
+    // funcion que usa la cron, de modo que los puntos suben o bajan ya.
+    await this.progresoPuntos.recalcularUsuario(participacion.idUsuario);
 
     const sinEvidencia = await this.aplicarLimpiezaEvidencia(
       participacion,
@@ -140,50 +154,6 @@ export class ParticipacionesService {
     return sinEvidencia
       ? this.participacionesDao.actualizar(idParticipacion, { imagenEvidencia: '' })
       : revisada;
-  }
-
-  /**
-   * Otorga puntos al usuario por evidencia aprobada y actualiza su nivel.
-   * Se usa factorCumplimiento para calcular el porcentaje según días cumplidos.
-   */
-  private async otorgarPuntosPorAprobacion(
-    participacion: Participacion,
-    diasCumplidos: number | null,
-  ): Promise<void> {
-    const reto = participacion.retoParticipante?.reto;
-
-    if (!reto) {
-      return;
-    }
-
-    // Calcular días estimados del reto (diferencia entre fecha_limite y fecha_creacion)
-    const diasEstimados = calcularDiasEstimados(reto.fechaCreacion, reto.fechaLimite);
-
-    // Calcular factor de cumplimiento (1 = 100%, 0.5 = 50%, 0 = 0%)
-    const factor = factorCumplimiento(diasEstimados, diasCumplidos);
-    const puntosGanados = Math.round(reto.puntosCompletado * factor);
-
-    if (puntosGanados <= 0) {
-      return;
-    }
-
-    const usuario = await this.usuarioRepo.findOne({ where: { idUsuario: participacion.idUsuario } });
-
-    if (!usuario) {
-      return;
-    }
-
-    const nuevosPuntos = usuario.puntos + puntosGanados;
-    const nuevoHistorialPuntos = usuario.historialPuntos + puntosGanados;
-    const nuevosRetosCumplidos = usuario.retosCumplidos + 1;
-    const nuevoNivel = calcularNivel(nuevosRetosCumplidos);
-
-    await this.usuarioRepo.update(usuario.idUsuario, {
-      puntos: nuevosPuntos,
-      historialPuntos: nuevoHistorialPuntos,
-      retosCumplidos: nuevosRetosCumplidos,
-      nivel: nuevoNivel,
-    });
   }
 
   /**
@@ -199,6 +169,14 @@ export class ParticipacionesService {
     }
 
     const carpeta = join(uploadsRoot(), dirname(participacion.imagenEvidencia));
+
+    // La referencia en BD podria no traer subcarpeta (dirname '.'): en ese caso
+    // no hay nada que borrar en disco, pero la referencia si debe limpiarse.
+    // Jamas se borra la raiz de uploads ni rutas fuera de ella.
+    if (!esCarpetaBorradoSegura(carpeta)) {
+      return true;
+    }
+
     await eliminarCarpeta(carpeta);
 
     return true;
@@ -221,7 +199,26 @@ export class ParticipacionesService {
     }[]
   > {
     const items = await this.participacionesDao.listarAprobadasPorUsuario(idUsuario);
-    return items.slice(0, limite);
+
+    // Una sola tarjeta por reto (la evidencia mas reciente): el DAO ya viene
+    // ordenado por id descendente, asi que la primera aparicion manda.
+    const porReto = new Map<number, (typeof items) [number]>();
+    for (const item of items) {
+      if (!porReto.has(item.idReto)) {
+        porReto.set(item.idReto, item);
+      }
+    }
+
+    return [...porReto.values()].slice(0, limite);
+  }
+
+  /**
+   * Cuenta cuántas evidencias aprobadas tiene un usuario en un reto específico.
+   * Sirve para calcular los días cumplidos automáticamente (cuenta TODAS las participaciones
+   * del usuario en ese reto, no solo la inscripción actual).
+   */
+  async contarAprobadasPorRetoYUsuario(idReto: number, idUsuario: number): Promise<number> {
+    return this.participacionesDao.contarAprobadasPorRetoYUsuario(idReto, idUsuario);
   }
 
   private async guardarEvidencia(

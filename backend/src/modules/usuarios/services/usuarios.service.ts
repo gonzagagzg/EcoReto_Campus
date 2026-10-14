@@ -16,9 +16,10 @@ import {
   buildUsuarioDir,
   buildUsuarioNombreArchivo,
   buildUsuarioPathRelativo,
+  eliminarCarpeta,
   ensureUploadDir,
 } from '../../../config/uploads.config';
-import { retosRequeridosParaNivel } from '../../retos/reglas-reto';
+import { NIVEL_MAXIMO, retosRequeridosParaNivel } from '../../retos/reglas-reto';
 import { ActualizarGustoDto } from '../dto/actualizar-gusto.dto';
 import { ActualizarPerfilDto } from '../dto/actualizar-perfil.dto';
 import { ActualizarUsuarioDto } from '../dto/actualizar-usuario.dto';
@@ -50,7 +51,7 @@ export interface EstadisticasUsuario {
   nivel: number;
   puntos: number;
   retosCumplidos: number;
-  retosRequeridosParaSiguienteNivel: number;
+  retosRequeridosParaSiguienteNivel: number | null;
   progresoNivel: number;
 }
 
@@ -192,13 +193,18 @@ export class UsuariosService {
   async actualizarFoto(idUsuario: number, foto: ArchivoSubido): Promise<Usuario> {
     await this.obtener(idUsuario);
 
+    // Version distinta por subida: evita el cache del navegador sobre la URL.
+    const version = Date.now();
+    const nombreArchivo = buildUsuarioNombreArchivo(idUsuario, version);
+
+    // Borra la(s) foto(s) anterior(es) y recrea la carpeta del avatar.
+    await eliminarCarpeta(buildUsuarioDir(idUsuario));
     const directorio = ensureUploadDir(buildUsuarioDir(idUsuario));
-    const nombreArchivo = buildUsuarioNombreArchivo(idUsuario);
 
     await writeFile(join(directorio, nombreArchivo), foto.buffer);
 
     return this.usuarioDao.actualizar(idUsuario, {
-      imagenUsuario: buildUsuarioPathRelativo(idUsuario),
+      imagenUsuario: buildUsuarioPathRelativo(idUsuario, version),
     });
   }
 
@@ -260,7 +266,10 @@ export class UsuariosService {
     return { eliminado: await this.usuarioDao.eliminarGusto(idGusto) };
   }
 
-  /** Sube la imagen del gusto a disco y devuelve la ruta relativa para BD. */
+  /**
+   * Sube la imagen del gusto a disco y la persiste en BD, para que el
+   * siguiente GET ya devuelva `imagenGusto` sin necesidad de un PUT extra.
+   */
   async subirImagenGusto(
     idGusto: number,
     archivo: ArchivoSubido,
@@ -269,7 +278,9 @@ export class UsuariosService {
     const dir = ensureUploadDir(buildGustoDir(idGusto));
     const nombreArchivo = buildGustoNombreArchivo(idGusto);
     await writeFile(join(dir, nombreArchivo), archivo.buffer);
-    return buildGustoPathRelativo(idGusto);
+    const ruta = buildGustoPathRelativo(idGusto);
+    await this.usuarioDao.actualizarGusto(idGusto, { imagenGusto: ruta });
+    return ruta;
   }
 
   async eliminarImagenGusto(idGusto: number): Promise<void> {
@@ -288,19 +299,24 @@ export class UsuariosService {
 
   private calcularEstadisticas(usuario: Usuario): EstadisticasUsuario {
     const nivel = usuario.nivel;
+
+    if (nivel >= NIVEL_MAXIMO) {
+      return {
+        nivel,
+        puntos: usuario.puntos,
+        retosCumplidos: usuario.retosCumplidos,
+        retosRequeridosParaSiguienteNivel: null,
+        progresoNivel: 100,
+      };
+    }
+
     const retosRequeridosParaSiguienteNivel = retosRequeridosParaNivel(nivel + 1);
-    const retosRequeridosNivelActual = retosRequeridosParaNivel(nivel);
-    const progresoNivel =
-      retosRequeridosParaSiguienteNivel === retosRequeridosNivelActual
-        ? 100
-        : Math.min(
-            100,
-            Math.round(
-              ((usuario.retosCumplidos - retosRequeridosNivelActual) /
-                (retosRequeridosParaSiguienteNivel - retosRequeridosNivelActual)) *
-                100,
-            ),
-          );
+    const progresoNivel = Math.min(
+      100,
+      Math.round(
+        (usuario.retosCumplidos / retosRequeridosParaSiguienteNivel) * 100,
+      ),
+    );
 
     return {
       nivel,

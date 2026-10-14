@@ -1,0 +1,221 @@
+<div class="apilar">
+  <div class="seccion-titulo">
+    <div>
+      <h1>Soporte</h1>
+      <p class="tenue chico">
+        Tickets de ayuda. Al aprobar podés corregir los datos sensibles del estudiante.
+      </p>
+    </div>
+  </div>
+
+  @if (estadisticas().length) {
+    <div class="malla malla--4">
+      @for (fila of estadisticas(); track fila.estado) {
+        <div class="panel-estadistica" [class.panel-estadistica--cian]="fila.estado === 'Enviado'">
+          <span class="rotulo">{{ fila.estado }}</span>
+          <span class="valor">{{ fila.total }}</span>
+        </div>
+      }
+    </div>
+  }
+
+  <app-alerta [mensaje]="error()" tipo="error" />
+  <app-alerta [mensaje]="exito()" tipo="ok" />
+
+  <section class="tarjeta tarjeta--plana">
+    <form class="filtros filtros--2" (ngSubmit)="buscar()">
+      <div class="campo">
+        <label for="estado">Estado</label>
+        <select id="estado" name="estado" class="entrada" [(ngModel)]="estado">
+          <option value="">Todos</option>
+          @for (opcion of estados; track opcion) {
+            <option [value]="opcion">{{ opcion }}</option>
+          }
+        </select>
+      </div>
+
+      <div class="filtros__botones">
+        <button type="submit" class="btn btn--primario">Buscar</button>
+        <button type="button" class="btn btn--fantasma" (click)="limpiar()">Limpiar</button>
+      </div>
+    </form>
+  </section>
+
+  @if (cargando()) {
+    <app-loader texto="Cargando tickets..." />
+  } @else if (items().length === 0) {
+    <div class="vacio">
+      <span class="vacio__icono" aria-hidden="true">0</span>
+      <p><strong>No hay tickets</strong></p>
+      <p class="chico">Cuando los estudiantes abran uno aparecerá acá.</p>
+    </div>
+  } @else {
+    <div class="tabla-envoltorio">
+      <table class="tabla tabla--tarjetas">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Ticket</th>
+            <th>Usuario</th>
+            <th>Estado</th>
+            <th>Fechas</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (ticket of items(); track ticket.idSoporte) {
+            <tr>
+              <td data-label="ID" class="tenue">{{ ticket.idSoporte }}</td>
+
+              <td data-label="Ticket">
+                <strong>{{ ticket.nombreSoporte }}</strong>
+                <div class="chico tenue resumen">{{ ticket.detalleSoporte }}</div>
+              </td>
+
+              <td data-label="Usuario">
+                <strong>{{ ticket.nombreUsuario }}</strong>
+                <div class="chico tenue">U{{ ticket.idUsuario }}</div>
+              </td>
+
+              <td data-label="Estado"><app-insignia [valor]="ticket.estadoSoporte" /></td>
+
+              <td data-label="Fechas" class="tenue">
+                {{ fecha(ticket.fechaCreacion) }}
+                @if (!esAbierto(ticket)) {
+                  <div class="chico tenue">Atendido {{ fecha(ticket.fechaAtencion) }}</div>
+                }
+              </td>
+
+              <td data-label="Acciones">
+                <div class="acciones">
+                  <button
+                    type="button"
+                    class="btn btn--secundario btn--chico"
+                    (click)="abrir(ticket)"
+                  >
+                    Ver
+                  </button>
+                </div>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+
+    <app-paginacion
+      [pagina]="pagina"
+      [limite]="limite"
+      [total]="total()"
+      (cambio)="cambiarPagina($event)"
+    />
+  }
+
+  @if (ver(); as ticket) {
+    <div class="modal-fondo" (click)="cerrar()">
+      <div
+        class="modal modal--ancho"
+        role="dialog"
+        aria-modal="true"
+        [attr.aria-label]="'Ver ticket ' + ticket.idSoporte"
+        (click)="$event.stopPropagation()"
+      >
+        <h3>Ver ticket #{{ ticket.idSoporte }}</h3>
+        <p class="chico tenue">{{ ticket.nombreSoporte }}</p>
+
+        <dl class="detalle">
+          <div>
+            <dt>Estado</dt>
+            <dd><app-insignia [valor]="ticket.estadoSoporte" /></dd>
+          </div>
+          <div>
+            <dt>Solicitante</dt>
+            <dd>{{ ticket.nombreUsuario }} (U{{ ticket.idUsuario }})</dd>
+          </div>
+          <div>
+            <dt>Creado</dt>
+            <dd>{{ fechaHora(ticket.fechaCreacion) }}</dd>
+          </div>
+          <div>
+            <dt>Atendido</dt>
+            <dd>{{ ticket.fechaAtencion ? fechaHora(ticket.fechaAtencion) : '—' }}</dd>
+          </div>
+          <div>
+            <dt>Revisado por</dt>
+            <dd>{{ revisor(ticket) }}</dd>
+          </div>
+        </dl>
+
+        <div class="nota">
+          <span class="chico tenue">Detalle</span>
+          <p>{{ ticket.detalleSoporte }}</p>
+        </div>
+
+        @if (ticket.imagenesSoporte) {
+          <div class="adjunta">
+            <img
+              class="adjunta__foto"
+              [src]="ticket.imagenesSoporte | imagenUrl"
+              alt="Imagen adjunta al ticket"
+              appImagenRota
+            />
+            <a
+              class="btn btn--chico"
+              [href]="ticket.imagenesSoporte | imagenUrl"
+              target="_blank"
+              rel="noopener"
+            >
+              Abrir en otra pestaña
+            </a>
+          </div>
+        }
+
+        @if (!esAbierto(ticket)) {
+          <div class="nota">
+            <span class="chico tenue">Respuesta</span>
+            <p>{{ ticket.respuestaSoporte || '—' }}</p>
+          </div>
+        } @else {
+          <div class="campo">
+            <label for="r-estado">Resolución</label>
+            <select id="r-estado" name="formEstado" class="entrada" [(ngModel)]="formEstado">
+              <option [value]="EstadoEvaluacion.Aprobado">Aprobar</option>
+              <option [value]="EstadoEvaluacion.Negado">Rechazar</option>
+              <option [value]="EstadoEvaluacion.Bloqueado">Bloquear</option>
+            </select>
+          </div>
+
+          <div class="campo">
+            <label for="r-respuesta">Respuesta al motivo del soporte</label>
+            <textarea
+              id="r-respuesta"
+              name="formRespuesta"
+              class="entrada textarea"
+              rows="4"
+              maxlength="2000"
+              [(ngModel)]="formRespuesta"
+              placeholder="Explica la resolución del ticket..."
+            ></textarea>
+          </div>
+        }
+
+        <app-alerta [mensaje]="error()" tipo="error" />
+        <app-alerta [mensaje]="exito()" tipo="ok" />
+
+        <div class="fila fila--fin">
+          <button type="button" class="btn btn--fantasma" (click)="cerrar()">Cerrar</button>
+          @if (esAbierto(ticket)) {
+            <button
+              type="button"
+              class="btn btn--primario"
+              [disabled]="procesando()"
+              (click)="responder()"
+            >
+              {{ procesando() ? 'Enviando...' : 'Enviar respuesta' }}
+            </button>
+          }
+        </div>
+      </div>
+    </div>
+  }
+</div>

@@ -1,0 +1,205 @@
+.clasificacion-container {
+  padding: 1.5rem;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.page-header {
+  margin-bottom: 1.5rem;
+  text-align: center;
+}
+
+.page-header h1 {
+  margin: 0 0 0.4rem;
+  font-size: 1.75rem;
+  color: var(--negro);
+}
+
+.page-header p {
+  margin: 0;
+  color: var(--texto-tenue);
+  font-size: 1rem;
+}
+
+.ranking {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.ranking-item {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem 1.25rem;
+  background: var(--superficie);
+  border: var(--grosor) solid var(--negro);
+  border-radius: var(--radio);
+  box-shadow: 4px 4px 0 var(--borde-fuerte);
+  transition:
+    transform var(--veloz),
+    box-shadow var(--veloz);
+}
+
+.ranking-item:hover {
+  transform: translate(-3px, -3px);
+  box-shadow: 8px 8px 0 var(--verde);
+}
+
+.ranking-item.top3 {
+  border-color: var(--verde);
+  background: linear-gradient(180deg, var(--superficie) 0%, var(--superficie-2) 100%);
+}
+
+.ranking-posicion {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-width: 48px;
+}
+
+.ranking-posicion .numero {
+  font-weight: 900;
+  font-size: 1.25rem;
+  color: var(--texto-tenue);
+}
+
+.ranking-item.top3 .numero {
+  color: var(--verde);
+}
+
+.medalla {
+  font-size: 1.25rem;
+}
+
+.ranking-usuario {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  text-decoration: none;
+  color: inherit;
+  min-width: 0;
+}
+
+.ranking-usuario:hover .usuario-nombre {
+  color: var(--verde);
+}
+
+.avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  border: var(--grosor) solid var(--negro);
+  background: var(--verde-lit);
+  color: var(--negro);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 900;
+  font-size: 1.25rem;
+  flex-shrink: 0;
+  overflow: hidden;
+}
+
+.avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.avatar__fondo {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.usuario-info {
+  min-width: 0;
+}
+
+.usuario-nombre {
+  font-weight: 800;
+  font-size: 1rem;
+  color: var(--texto);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  transition: color var(--veloz);
+}
+
+.usuario-alias {
+  font-size: 0.8125rem;
+  color: var(--texto-tenue);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.usuario-carrera {
+  font-size: 0.75rem;
+  color: var(--texto-tenue);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-top: 0.15rem;
+}
+
+.ranking-puntos {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.15rem;
+  min-width: 70px;
+}
+
+.puntos-valor {
+  font-weight: 900;
+  font-size: 1.35rem;
+  color: var(--negro);
+}
+
+.puntos-label {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--texto-tenue);
+}
+
+@media (max-width: 640px) {
+  .clasificacion-container {
+    padding: 1rem;
+  }
+
+  .ranking-item {
+    grid-template-columns: auto 1fr;
+    grid-template-areas:
+      'posicion usuario'
+      'posicion puntos';
+  }
+
+  .ranking-posicion {
+    grid-area: posicion;
+  }
+
+  .ranking-usuario {
+    grid-area: usuario;
+  }
+
+  .ranking-puntos {
+    grid-area: puntos;
+    align-items: flex-start;
+    min-width: auto;
+    flex-direction: row;
+    gap: 0.35rem;
+  }
+
+  .puntos-label {
+    display: none;
+  }
+}

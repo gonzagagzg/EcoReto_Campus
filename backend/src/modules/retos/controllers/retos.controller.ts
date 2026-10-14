@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Body,
   Controller,
   Delete,
@@ -27,6 +28,7 @@ import { CrearRetoDto } from '../dto/crear-reto.dto';
 import { RetoQueryDto } from '../dto/reto-query.dto';
 import { Rol } from '../../usuarios/entities/usuario.entity';
 import { RetosService } from '../services/retos.service';
+import { RetoParticipacionActual } from '../daos/reto.dao.interface';
 
 @Controller('retos')
 @UseGuards(JwtAuthGuard, RolesGuard)
@@ -39,6 +41,13 @@ export class RetosController {
       idUsuario: usuario.idUsuario,
       rol: usuario.rol,
     });
+  }
+
+  @Get('mis-participaciones')
+  listarMisParticipaciones(
+    @CurrentUser('idUsuario') idUsuario: number,
+  ): Promise<RetoParticipacionActual[]> {
+    return this.retosService.listarParticipacionesActuales(idUsuario);
   }
 
   @Get(':id')
@@ -70,6 +79,34 @@ export class RetosController {
     @CurrentUser() usuario: UsuarioAutenticado,
   ) {
     return this.retosService.actualizar(id, dto, {
+      idUsuario: usuario.idUsuario,
+      rol: usuario.rol,
+    });
+  }
+
+  @Post(':id/imagen')
+  @UseInterceptors(FileInterceptor('imagen', opcionesImagen))
+  subirImagen(
+    @Param('id', ParseIntPipe) id: number,
+    @CurrentUser() usuario: UsuarioAutenticado,
+    @UploadedFile() imagen?: ArchivoSubido,
+  ) {
+    if (!imagen) {
+      throw new BadRequestException('Debes adjuntar la imagen del reto');
+    }
+    return this.retosService.subirImagen(id, imagen, {
+      idUsuario: usuario.idUsuario,
+      rol: usuario.rol,
+    });
+  }
+
+  @Delete(':id/imagen')
+  @HttpCode(HttpStatus.OK)
+  eliminarImagen(
+    @Param('id', ParseIntPipe) id: number,
+    @CurrentUser() usuario: UsuarioAutenticado,
+  ) {
+    return this.retosService.eliminarImagen(id, {
       idUsuario: usuario.idUsuario,
       rol: usuario.rol,
     });

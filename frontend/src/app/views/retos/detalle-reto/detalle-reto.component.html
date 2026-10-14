@@ -1,0 +1,95 @@
+@if (cargando()) {
+  <app-loader texto="Cargando reto..." />
+} @else {
+  <div class="apilar">
+    <a routerLink="/inicio" class="volver">&larr; Volver a los retos</a>
+
+    <app-alerta [mensaje]="error()" tipo="error" />
+    <app-alerta [mensaje]="aviso()" tipo="ok" />
+
+    @if (reto(); as r) {
+      <section class="ficha subir">
+        @if (r.imagenReto) {
+          <img
+            class="ficha__imagen"
+            [src]="r.imagenReto | imagenUrl"
+            [alt]="r.nombreReto"
+            appImagenRota
+          />
+        }
+
+        <div class="ficha__cuerpo">
+          <div class="fila">
+            <app-insignia [valor]="r.estadoReto" />
+            <app-insignia [valor]="r.dificultad" />
+            <span class="insignia insignia--neutra">{{ r.categoria }}</span>
+          </div>
+
+          <h1>{{ r.nombreReto }}</h1>
+          <p>{{ r.descripcionReto }}</p>
+
+          <dl class="datos">
+            <div>
+              <dt>Fecha límite</dt>
+              <dd>{{ fecha(r.fechaLimite) }}</dd>
+            </div>
+            <div>
+              <dt>Creado</dt>
+              <dd>{{ fecha(r.fechaCreacion) }}</dd>
+            </div>
+            <div>
+              <dt>Participantes</dt>
+              <dd>{{ participantes() }}</dd>
+            </div>
+          </dl>
+        </div>
+
+        <aside class="ficha__premio">
+          <div class="panel-estadistica">
+            <span class="rotulo">Al completarlo</span>
+            <span class="valor"> {{ r.puntosCompletado }} </span>
+            <span class="rotulo">puntos</span>
+          </div>
+
+          <div class="panel-estadistica panel-estadistica--cian">
+            <span class="rotulo">Al cerrar·mín.</span>
+            <span class="valor"> {{ r.puntosParticipar }} </span>
+            <span class="rotulo">puntos</span>
+          </div>
+
+          @if (yaParticipo) {
+            <a
+              class="btn btn--primario btn--ancho"
+              [routerLink]="['/retos', r.idReto, 'evidencia']"
+            >
+              Subir evidencia
+            </a>
+            <p class="chico tenue centro">Ya estás inscrito en este reto.</p>
+          } @else if (r.estadoReto === 'Activo') {
+            <button
+              type="button"
+              class="btn btn--primario btn--ancho"
+              [disabled]="procesando()"
+              (click)="participar()"
+            >
+              {{ procesando() ? 'Inscribiendo...' : 'Participar en el reto' }}
+            </button>
+            <p class="chico tenue centro">
+              Los puntos se abonan al cerrar: 25%, 50% o 75% según los días aprobados, o 100% y
+              nivel al cubrir todos los días.
+            </p>
+          } @else {
+            <p class="chico tenue centro">Este reto no está abierto para inscripciones.</p>
+          }
+        </aside>
+      </section>
+    } @else {
+      <div class="vacio">
+        <span class="vacio__icono" aria-hidden="true">!</span>
+        <p><strong>No pudimos cargar este reto</strong></p>
+        <p class="chico">Puede que haya finalizado o que el enlace no sea válido.</p>
+        <a routerLink="/inicio" class="btn btn--secundario">Volver al inicio</a>
+      </div>
+    }
+  </div>
+}

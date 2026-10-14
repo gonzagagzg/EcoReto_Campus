@@ -1,0 +1,206 @@
+<div class="apilar">
+  <div class="seccion-titulo">
+    <div>
+      <h1>Premios</h1>
+      <p class="tenue chico">
+        Canjeá los puntos que sumás cumpliendo retos por premios del campus.
+      </p>
+    </div>
+
+    <div class="panel-estadistica panel-estadistica--oro">
+      <span class="rotulo">Tus puntos</span>
+      <span class="valor">{{ puntos() }}</span>
+    </div>
+  </div>
+
+  <app-alerta [mensaje]="error()" tipo="error" />
+  <app-alerta [mensaje]="exito()" tipo="ok" />
+
+  <section class="tarjeta tarjeta--plana">
+    <form class="busqueda" (ngSubmit)="buscar()">
+      <div class="campo">
+        <label for="q">Buscar premio</label>
+        <input
+          id="q"
+          name="busqueda"
+          class="entrada"
+          placeholder="Ej: botella, libreta..."
+          [(ngModel)]="busqueda"
+        />
+      </div>
+      <button type="submit" class="btn btn--primario">Buscar</button>
+    </form>
+  </section>
+
+  @if (cargando()) {
+    <app-loader texto="Cargando premios..." />
+  } @else if (items().length === 0) {
+    <div class="vacio">
+      <span class="vacio__icono" aria-hidden="true">?</span>
+      <p><strong>No hay premios disponibles</strong></p>
+      <p class="chico">Probá con otra búsqueda o volvé más tarde.</p>
+    </div>
+  } @else {
+    <div class="malla malla--3">
+      @for (premio of items(); track premio.idPremio) {
+        <article class="premio-tarjeta">
+          @if (premio.imagenPremio) {
+            <img
+              class="premio-tarjeta__imagen"
+              [src]="premio.imagenPremio | imagenUrl"
+              [alt]="premio.nombrePremio"
+              appImagenRota
+            />
+          } @else {
+            <div class="premio-tarjeta__icono" aria-hidden="true">
+              {{ premio.nombrePremio.charAt(0) }}
+            </div>
+          }
+
+          <h3>{{ premio.nombrePremio }}</h3>
+          <p class="chico tenue">{{ premio.descripcionPremio }}</p>
+
+          <div class="premio-tarjeta__pie">
+            <span class="puntos">
+              <span class="numero">{{ premio.puntosPremio }}</span>
+              <span class="unidad">pts</span>
+            </span>
+
+            <button
+              type="button"
+              class="btn btn--oro btn--chico"
+              [disabled]="!puedeCanjear(premio) || canjeando() === premio.idPremio"
+              (click)="confirmarCanje(premio)"
+            >
+              @if (canjeando() === premio.idPremio) {
+                Canjeando...
+              } @else if (puedeCanjear(premio)) {
+                Canjear
+              } @else {
+                Te faltan
+              }
+            </button>
+          </div>
+        </article>
+      }
+    </div>
+
+    <app-paginacion
+      [pagina]="pagina"
+      [limite]="limite"
+      [total]="total()"
+      (cambio)="cambiarPagina($event)"
+    />
+  }
+
+  <section class="tarjeta">
+    <div class="seccion-titulo">
+      <h2>Mi historial</h2>
+    </div>
+
+    @if (historial().length) {
+      <div class="tabla-envoltorio">
+        <table class="tabla tabla--tarjetas">
+          <thead>
+            <tr>
+              <th>Premio</th>
+              <th>Fecha</th>
+              <th>Estado</th>
+              <th>Puntos</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (registro of historial(); track registro.idHistorialPremio) {
+              <tr>
+                <td data-label="Premio">
+                  <strong>{{
+                    registro.premio?.nombrePremio ?? 'Premio #' + registro.idPremio
+                  }}</strong>
+                </td>
+                <td data-label="Fecha" class="tenue">{{ fechaHora(registro.fechaCanje) }}</td>
+                <td data-label="Estado"><app-insignia [valor]="registro.estadoCanjePremio" /></td>
+                <td data-label="Puntos">
+                  <span class="insignia insignia--oro">
+                    {{ registro.premio?.puntosPremio ?? '-' }} pts
+                  </span>
+                </td>
+                <td data-label="Acciones">
+                  <button
+                    type="button"
+                    class="btn btn--cian btn--chico"
+                    (click)="abrirDetalle(registro)"
+                  >
+                    Ver
+                  </button>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    } @else {
+      <div class="vacio">
+        <span class="vacio__icono" aria-hidden="true">0</span>
+        <p><strong>Todavía no canjeaste nada</strong></p>
+        <p class="chico">Cuando canjees un premio va a aparecer acá.</p>
+      </div>
+    }
+  </section>
+
+  @if (porCanjear(); as premio) {
+    <app-modal-confirmacion
+      titulo="Confirmar canje"
+      [mensaje]="
+        '¿Quieres canjear «' + premio.nombrePremio + '» por ' + premio.puntosPremio + ' puntos?'
+      "
+      textoConfirmar="Sí, canjear"
+      textoCancelar="Cancelar"
+      (confirmar)="ejecutarCanje()"
+      (cancelar)="cancelarCanje()"
+    />
+  }
+
+  @if (verDetalle(); as registro) {
+    <div class="modal-fondo" (click)="cerrarDetalle()">
+      <div
+        class="modal modal--ancho"
+        role="dialog"
+        aria-modal="true"
+        [attr.aria-label]="'Detalle canje ' + registro.idHistorialPremio"
+        (click)="$event.stopPropagation()"
+      >
+        <h3>{{ registro.premio?.nombrePremio }}</h3>
+        <p class="chico tenue">
+          {{ 'Premio #' + registro.idPremio }}
+        </p>
+
+        <app-alerta [mensaje]="error()" tipo="error" />
+        <app-alerta [mensaje]="exito()" tipo="ok" />
+
+        <dl class="detalle">
+          <div>
+            <dt>Fecha de canje</dt>
+            <dd>{{ fechaHora(registro.fechaCanje) }}</dd>
+          </div>
+          <div>
+            <dt>Fecha de reclamo</dt>
+            <dd>{{ registro.fechaReclamo ? fechaHora(registro.fechaReclamo) : '—' }}</dd>
+          </div>
+          <div>
+            <dt>Observación</dt>
+            <dd>{{ registro.observacionCanje ?? '—' }}</dd>
+          </div>
+          <div>
+            <dt>Estado</dt>
+            <dd><app-insignia [valor]="registro.estadoCanjePremio" /></dd>
+          </div>
+        </dl>
+
+        <div class="fila fila--fin">
+          <button type="button" class="btn btn--primario" (click)="cerrarDetalle()">Cerrar</button>
+        </div>
+      </div>
+    </div>
+  }
+</div>

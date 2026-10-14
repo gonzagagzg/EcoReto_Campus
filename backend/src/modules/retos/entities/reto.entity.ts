@@ -49,10 +49,10 @@ export class Reto {
   @Column({ name: 'categoria', type: 'varchar', length: 100 })
   categoria!: string;
 
-  @CreateDateColumn({ name: 'fecha_creacion', type: 'timestamp' })
+  @CreateDateColumn({ name: 'fecha_creacion', type: 'timestamptz' })
   fechaCreacion!: Date;
 
-  @Column({ name: 'fecha_limite', type: 'timestamp' })
+  @Column({ name: 'fecha_limite', type: 'timestamptz' })
   fechaLimite!: Date;
 
   @Column({

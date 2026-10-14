@@ -3,7 +3,8 @@ import { EstadoEvaluacion } from '../../participaciones/entities/participacion.e
 
 /**
  * Respuesta del ticket. Ademas del estado, el Administrador puede aplicar en el perfil del
- * estudiante los datos sensibles que el usuario no puede editar por si mismo.
+ * estudiante los datos sensibles que el usuario no puede editar por si mismo y dejar una
+ * respuesta escrita para el solicitante.
  */
 export class ResponderSoporteDto {
   @IsEnum(EstadoEvaluacion)
@@ -28,4 +29,9 @@ export class ResponderSoporteDto {
   @IsEmail()
   @MaxLength(150)
   correo?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(2000)
+  respuestaSoporte?: string;
 }

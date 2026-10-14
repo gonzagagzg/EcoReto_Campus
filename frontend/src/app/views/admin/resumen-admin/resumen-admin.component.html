@@ -1,0 +1,168 @@
+<div class="apilar">
+  <div class="seccion-titulo">
+    <div>
+      <h1>Tablero</h1>
+      <p class="tenue chico">Estado general de EcoReto Campus.</p>
+    </div>
+
+    <div class="fila">
+      <a class="btn btn--chico btn--cian" routerLink="/admin/soporte">Responder soporte</a>
+      <a class="btn btn--chico" routerLink="/supervisor">Supervisión</a>
+    </div>
+  </div>
+
+  <app-alerta [mensaje]="error()" tipo="error" />
+
+  @if (cargando()) {
+    <app-loader texto="Cargando métricas..." />
+  } @else if (resumen(); as r) {
+    <div class="malla malla--3">
+      <div class="panel-estadistica">
+        <span class="rotulo">Usuarios</span>
+        <span class="valor">{{ r.totalUsuarios }}</span>
+      </div>
+      <div class="panel-estadistica panel-estadistica--cian">
+        <span class="rotulo">Retos</span>
+        <span class="valor">{{ r.totalRetos }}</span>
+      </div>
+      <div class="panel-estadistica panel-estadistica--oro">
+        <span class="rotulo">Evidencias</span>
+        <span class="valor">{{ r.totalParticipaciones }}</span>
+      </div>
+      <div class="panel-estadistica panel-estadistica--oro">
+        <span class="rotulo">Puntos en circulación</span>
+        <span class="valor">{{ r.puntosEnCirculacion }}</span>
+      </div>
+      <div class="panel-estadistica">
+        <span class="rotulo">Premios</span>
+        <span class="valor">{{ r.totalPremios }}</span>
+      </div>
+      <div class="panel-estadistica panel-estadistica--cian">
+        <span class="rotulo">Tickets de soporte</span>
+        <span class="valor">{{ r.totalTickets }}</span>
+      </div>
+    </div>
+
+    <div class="malla malla--2">
+      <section class="tarjeta">
+        <div class="seccion-titulo"><h2>Usuarios por estado</h2></div>
+        <div class="tabla-envoltorio">
+          <table class="tabla">
+            <thead>
+              <tr>
+                <th>Estado</th>
+                <th>Total</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (fila of r.usuariosPorEstado; track fila.estado) {
+                <tr>
+                  <td><app-insignia [valor]="fila.estado" /></td>
+                  <td>
+                    <strong>{{ fila.total }}</strong>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="tarjeta">
+        <div class="seccion-titulo"><h2>Usuarios por rol</h2></div>
+        <div class="tabla-envoltorio">
+          <table class="tabla">
+            <thead>
+              <tr>
+                <th>Rol</th>
+                <th>Total</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (fila of r.usuariosPorRol; track fila.rol) {
+                <tr>
+                  <td><app-insignia [valor]="fila.rol" /></td>
+                  <td>
+                    <strong>{{ fila.total }}</strong>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="tarjeta">
+        <div class="seccion-titulo"><h2>Retos por estado</h2></div>
+        <div class="tabla-envoltorio">
+          <table class="tabla">
+            <thead>
+              <tr>
+                <th>Estado</th>
+                <th>Total</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (fila of r.retosPorEstado; track fila.estadoReto) {
+                <tr>
+                  <td><app-insignia [valor]="fila.estadoReto" /></td>
+                  <td>
+                    <strong>{{ fila.total }}</strong>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="tarjeta">
+        <div class="seccion-titulo"><h2>Evidencias por estado</h2></div>
+        <div class="tabla-envoltorio">
+          <table class="tabla">
+            <thead>
+              <tr>
+                <th>Estado</th>
+                <th>Total</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (fila of r.participacionesPorEstado; track fila.estado) {
+                <tr>
+                  <td><app-insignia [valor]="fila.estado" /></td>
+                  <td>
+                    <strong>{{ fila.total }}</strong>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="tarjeta">
+        <div class="seccion-titulo"><h2>Soporte por estado</h2></div>
+        <div class="tabla-envoltorio">
+          <table class="tabla">
+            <thead>
+              <tr>
+                <th>Estado</th>
+                <th>Total</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (fila of r.soportePorEstado; track fila.estado) {
+                <tr>
+                  <td><app-insignia [valor]="fila.estado" /></td>
+                  <td>
+                    <strong>{{ fila.total }}</strong>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </div>
+  }
+</div>

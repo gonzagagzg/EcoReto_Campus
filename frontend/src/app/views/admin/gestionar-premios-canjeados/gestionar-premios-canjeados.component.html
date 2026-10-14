@@ -1,0 +1,188 @@
+<div class="apilar">
+  <div class="seccion-titulo">
+    <div>
+      <h1>Gestión de premios canjeados</h1>
+      <p class="tenue chico">
+        Historial de canjes de todos los usuarios. Cambia el estado de cada canje según su
+        situación.
+      </p>
+    </div>
+  </div>
+
+  <app-alerta [mensaje]="error()" tipo="error" />
+  <app-alerta [mensaje]="exito()" tipo="ok" />
+
+  <section class="tarjeta tarjeta--plana">
+    <form class="filtros" (ngSubmit)="buscar()">
+      <div class="campo">
+        <label for="busqueda">Buscar</label>
+        <input
+          id="busqueda"
+          name="busqueda"
+          type="text"
+          class="entrada"
+          placeholder="Nombre del premio, usuario o alias"
+          [(ngModel)]="busqueda"
+        />
+      </div>
+
+      <div class="campo">
+        <label for="estado">Estado</label>
+        <select id="estado" name="estado" class="entrada" [(ngModel)]="estadoFiltro">
+          <option value="">Todos</option>
+          @for (estado of estadosCanje; track estado) {
+            <option [value]="estado">{{ estado }}</option>
+          }
+        </select>
+      </div>
+
+      <div class="filtros__botones">
+        <button type="submit" class="btn btn--primario">Buscar</button>
+        <button type="button" class="btn btn--fantasma" (click)="limpiar()">Limpiar</button>
+      </div>
+    </form>
+  </section>
+
+  @if (cargando()) {
+    <app-loader texto="Cargando historial de canjes..." />
+  } @else if (items().length === 0) {
+    <div class="vacio">
+      <span class="vacio__icono" aria-hidden="true">?</span>
+      <p><strong>No hay canjes registrados</strong></p>
+      <p class="chico">Aún no se han canjeado premios.</p>
+      <button type="button" class="btn btn--secundario" (click)="limpiar()">Limpiar filtros</button>
+    </div>
+  } @else {
+    <div class="tabla-envoltorio">
+      <table class="tabla tabla--tarjetas">
+        <thead>
+          <tr>
+            <th>ID Canje</th>
+            <th>Premio</th>
+            <th>Usuario</th>
+            <th>Fecha canje</th>
+            <th>Estado</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (item of items(); track item.idHistorialPremio) {
+            <tr>
+              <td data-label="ID Canje" class="tenue">#{{ item.idHistorialPremio }}</td>
+              <td data-label="Premio">
+                <strong>{{ item.nombrePremio }}</strong>
+                <div class="chico tenue">ID Premio: {{ item.idPremio }}</div>
+              </td>
+              <td data-label="Usuario">
+                <strong>{{ item.nombreUsuario }}</strong>
+                <div class="chico tenue">@{{ item.aliasUsuario }} (U{{ item.idUsuario }})</div>
+              </td>
+              <td data-label="Fecha canje" class="tenue">{{ fechaHora(item.fechaCanje) }}</td>
+              <td data-label="Estado"><app-insignia [valor]="item.estadoCanjePremio" /></td>
+              <td data-label="Acciones">
+                <div class="acciones">
+                  <button
+                    type="button"
+                    class="btn btn--cian btn--chico"
+                    (click)="abrirCambioEstado(item)"
+                  >
+                    {{ textoBotonAccion(item.estadoCanjePremio) }}
+                  </button>
+                </div>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+
+    <app-paginacion
+      [pagina]="pagina"
+      [limite]="limite"
+      [total]="total()"
+      (cambio)="cambiarPagina($event)"
+    />
+  }
+
+  @if (verEstado(); as item) {
+    <div class="modal-fondo" (click)="cerrarCambioEstado()">
+      <div
+        class="modal modal--ancho"
+        role="dialog"
+        aria-modal="true"
+        [attr.aria-label]="'Cambiar estado canje ' + item.idHistorialPremio"
+        (click)="$event.stopPropagation()"
+      >
+        <h3>Canje #{{ item.idHistorialPremio }}</h3>
+        <p class="chico tenue">
+          {{ item.nombrePremio }} · canjeado por {{ item.nombreUsuario }} (@{{ item.aliasUsuario }})
+        </p>
+
+        <app-alerta [mensaje]="error()" tipo="error" />
+        <app-alerta [mensaje]="exito()" tipo="ok" />
+
+        <dl class="detalle">
+          <div>
+            <dt>Fecha de canje</dt>
+            <dd>{{ fechaHora(item.fechaCanje) }}</dd>
+          </div>
+          <div>
+            <dt>Fecha de reclamo</dt>
+            <dd>{{ item.fechaReclamo ? fechaHora(item.fechaReclamo) : '—' }}</dd>
+          </div>
+          <div>
+            <dt>Observación</dt>
+            <dd>
+              @if (!esSoloLectura(item.estadoCanjePremio)) {
+                <textarea
+                  class="entrada"
+                  rows="3"
+                  maxlength="1000"
+                  placeholder="Observación del canje..."
+                  [(ngModel)]="formObservacion"
+                ></textarea>
+              } @else {
+                {{ item.observacionCanje ?? '—' }}
+              }
+            </dd>
+          </div>
+          <div>
+            <dt>Estado actual</dt>
+            <dd><app-insignia [valor]="item.estadoCanjePremio" /></dd>
+          </div>
+        </dl>
+
+        @if (!esSoloLectura(item.estadoCanjePremio)) {
+          <div class="campo">
+            <label for="nuevo-estado">Nuevo estado</label>
+            <select id="nuevo-estado" name="formEstado" class="entrada" [(ngModel)]="formEstado">
+              @for (estado of estadosCanje; track estado) {
+                <option [value]="estado">{{ estado }}</option>
+              }
+            </select>
+          </div>
+
+          <div class="fila fila--fin">
+            <button type="button" class="btn btn--fantasma" (click)="cerrarCambioEstado()">
+              Cancelar
+            </button>
+            <button
+              type="button"
+              class="btn btn--primario"
+              [disabled]="procesando()"
+              (click)="aplicarEstado()"
+            >
+              {{ procesando() ? 'Aplicando...' : 'Aplicar cambio' }}
+            </button>
+          </div>
+        } @else {
+          <div class="fila fila--fin">
+            <button type="button" class="btn btn--primario" (click)="cerrarCambioEstado()">
+              Cerrar
+            </button>
+          </div>
+        }
+      </div>
+    </div>
+  }
+</div>

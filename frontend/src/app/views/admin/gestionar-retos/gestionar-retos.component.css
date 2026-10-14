@@ -1,0 +1,77 @@
+.app-gestionar-retos {
+  padding: 1.5rem;
+}
+
+.app-gestionar-retos .nota {
+  color: #6b7280;
+  margin-top: 0.5rem;
+}
+
+.imagen-previa-contenedor {
+  position: relative;
+  display: inline-block;
+  max-width: 100%;
+  margin-bottom: 0.5rem;
+}
+
+.imagen-previa {
+  max-width: 280px;
+  max-height: 200px;
+  border-radius: var(--radio-chico);
+  border: var(--grosor) solid var(--borde-fuerte);
+  background: var(--superficie);
+  object-fit: cover;
+}
+
+.imagen-acciones {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.decisiones {
+  display: grid;
+  gap: 0.6rem;
+}
+
+.decision {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0.1rem 0.7rem;
+  align-items: start;
+  padding: 0.75rem 0.9rem;
+  background: var(--superficie);
+  border: var(--grosor) solid var(--borde-fuerte);
+  border-radius: var(--radio-chico);
+  cursor: pointer;
+  transition:
+    border-color var(--veloz),
+    background var(--veloz);
+}
+
+.decision:hover {
+  border-color: var(--verde);
+}
+
+.decision input {
+  grid-row: span 2;
+  margin-top: 0.3rem;
+  accent-color: var(--verde);
+}
+
+.decision__titulo {
+  font-weight: 900;
+}
+
+.decision__texto {
+  color: var(--texto-tenue);
+  font-size: 0.85rem;
+  line-height: 1.35;
+}
+
+.decision--activa {
+  background: var(--verde-suave);
+  border-color: var(--negro);
+  box-shadow: 3px 3px 0 var(--negro);
+}

@@ -18,12 +18,20 @@ export const MAX_PUNTOS_DIFICIL = 300;
 /** porcentaje de puntos al participar sin completar el reto */
 export const PORCENTAJE_POR_PARTICIPAR = 0.25;
 
-/** porcentaje minimo de dias para obtener el pago parcial del 50% */
-export const PORCENTAJE_CUMPLIMIENTO_PARCIAL = 0.5;
-
 export const NIVEL_MAXIMO = 100;
 
 const MS_POR_DIA = 86_400_000;
+
+/**
+ * El vencimiento siempre es al final del dia indicado (23:59:59.999 hora del
+ * servidor): un reto con limite 2026-10-20 sigue activo todo ese dia y pasa
+ * a vencido/finalizado recien el 2026-10-21 00:00:00.
+ */
+export function finDelDia(fecha: Date): Date {
+  const copia = new Date(fecha.getTime());
+  copia.setHours(23, 59, 59, 999);
+  return copia;
+}
 
 export interface PuntajeReto {
   diasEstimados: number;
@@ -93,21 +101,30 @@ export function calcularPuntajeReto(fechaCreacion: Date, fechaLimite: Date): Pun
 }
 
 /**
- * Pago proporcional al vencer el reto: 100% si cumplio todos los dias estimados,
- * 50% si cumplio al menos la mitad (minimo 2 de cada 4) y 0% por debajo de eso.
+ * Pago proporcional segun las evidencias aprobadas sobre los dias requeridos:
+ * 100% al completar todos los dias (reto cumplido), y 25% / 50% / 75% al cerrar
+ * el reto incompleto segun el tramo alcanzado. Sin evidencias aprobadas: 0.
  */
-export function factorCumplimiento(diasEstimados: number, diasCumplidos: number | null): number {
-  if (diasCumplidos === null || diasCumplidos === undefined) {
+export function factorPorEvidencias(aprobadas: number, requeridas: number): 0 | 0.25 | 0.5 | 0.75 | 1 {
+  if (aprobadas <= 0) {
+    return 0;
+  }
+
+  if (requeridas <= 0 || aprobadas >= requeridas) {
     return 1;
   }
 
-  if (diasCumplidos >= diasEstimados) {
-    return 1;
+  const ratio = aprobadas / requeridas;
+
+  if (ratio >= 0.75) {
+    return 0.75;
   }
 
-  const minimoParcial = Math.ceil(diasEstimados * PORCENTAJE_CUMPLIMIENTO_PARCIAL);
+  if (ratio >= 0.5) {
+    return 0.5;
+  }
 
-  return diasCumplidos >= minimoParcial ? 0.5 : 0;
+  return 0.25;
 }
 
 /** Nivel 0 con 1 reto cumplido, nivel 1 con 2, nivel 2 con 4... hasta el nivel 100. */

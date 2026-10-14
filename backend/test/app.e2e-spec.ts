@@ -16,11 +16,12 @@ describe('AppController (e2e)', () => {
     await app.init();
   });
 
-  it('/ (GET)', () => {
-    return request(app.getHttpServer())
-      .get('/')
-      .expect(200)
-      .expect('Hello World!');
+  it('/ (GET) devuelve el estado de conexion con la base de datos', async () => {
+    const respuesta = await request(app.getHttpServer()).get('/').expect(200);
+
+    expect(respuesta.body.conectado).toBe(true);
+    expect(respuesta.body.mensaje).toBe('ok');
+    expect(typeof respuesta.body.ia).toBe('boolean');
   });
 
   afterEach(async () => {

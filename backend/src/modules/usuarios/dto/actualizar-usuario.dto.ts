@@ -1,10 +1,15 @@
 import {
   IsEmail,
+  IsEnum,
+  IsInt,
   IsOptional,
   IsString,
+  Max,
   MaxLength,
+  Min,
   MinLength,
 } from 'class-validator';
+import { EstadoUsuario, Rol } from '../entities/usuario.entity';
 
 export class ActualizarUsuarioDto {
   @IsOptional()
@@ -51,4 +56,33 @@ export class ActualizarUsuarioDto {
   @MinLength(8)
   @MaxLength(72)
   contrasena?: string;
+
+  @IsOptional()
+  @IsInt()
+  @Min(0)
+  puntos?: number;
+
+  @IsOptional()
+  @IsInt()
+  @Min(0)
+  historialPuntos?: number;
+
+  @IsOptional()
+  @IsInt()
+  @Min(0)
+  retosCumplidos?: number;
+
+  @IsOptional()
+  @IsInt()
+  @Min(0)
+  @Max(9999)
+  nivel?: number;
+
+  @IsOptional()
+  @IsEnum(EstadoUsuario)
+  estado?: EstadoUsuario;
+
+  @IsOptional()
+  @IsEnum(Rol)
+  rol?: Rol;
 }

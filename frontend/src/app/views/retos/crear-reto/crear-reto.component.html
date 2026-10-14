@@ -1,0 +1,133 @@
+<div class="apilar">
+  <a routerLink="/inicio" class="volver">&larr; Volver a los retos</a>
+
+  <div class="seccion-titulo">
+    <div>
+      <h1>Proponer un reto</h1>
+      <p class="tenue chico">
+        El reto se envía a revisión y, una vez aprobado, aparece para todo el campus.
+      </p>
+    </div>
+    <span class="insignia insignia--oro">Nuevo reto</span>
+  </div>
+
+  <app-alerta [mensaje]="error()" tipo="error" />
+
+  <div class="crear">
+    <form class="tarjeta" (ngSubmit)="enviar()" novalidate>
+      <div class="campo">
+        <label for="nombre">Nombre del reto</label>
+        <input
+          id="nombre"
+          name="nombreReto"
+          class="entrada"
+          placeholder="Ej: Recoge 10 botellas de plástico"
+          [(ngModel)]="nombreReto"
+          maxlength="150"
+        />
+      </div>
+
+      <div class="campo">
+        <label for="descripcion">Descripción</label>
+        <textarea
+          id="descripcion"
+          name="descripcionReto"
+          class="entrada"
+          rows="6"
+          placeholder="Explicá qué hay que hacer, dónde y cómo se comprueba."
+          [(ngModel)]="descripcionReto"
+          maxlength="5000"
+        ></textarea>
+      </div>
+
+      <div class="formulario-cuadricula">
+        <div class="campo">
+          <label for="categoria">Categoría</label>
+          <select
+            id="categoria"
+            name="categoria"
+            class="entrada"
+            [(ngModel)]="categoria"
+          >
+            @for (cat of categorias; track cat) {
+              <option [value]="cat">{{ cat }}</option>
+            }
+          </select>
+        </div>
+
+        <div class="campo">
+          <label for="fecha">Fecha límite</label>
+          <input
+            id="fecha"
+            name="fechaLimite"
+            type="date"
+            class="entrada"
+            [min]="minimo"
+            [(ngModel)]="fechaLimite"
+          />
+        </div>
+      </div>
+
+      <div class="campo">
+        <label>Imagen del reto <span class="opcional">(opcional)</span></label>
+
+        @if (vistaPrevia) {
+          <div class="miniatura">
+            <img [src]="vistaPrevia" alt="Vista previa del reto" />
+            <button type="button" class="btn btn--chico" (click)="quitarImagen()">Quitar</button>
+          </div>
+        } @else {
+          <label class="boton-archivo">
+            <span>Elegir imagen</span>
+            <input type="file" accept="image/*" (change)="seleccionar($event)" hidden />
+          </label>
+        }
+      </div>
+
+      <div class="fila fila--entre">
+        <a routerLink="/inicio" class="btn btn--fantasma">Cancelar</a>
+        <button type="submit" class="btn btn--primario" [disabled]="procesando()">
+          {{ procesando() ? 'Enviando...' : 'Enviar a revisión' }}
+        </button>
+      </div>
+    </form>
+
+    <aside class="apilar">
+      <section class="tarjeta tarjeta--destacada">
+        <h3>Cómo se calculan los puntos</h3>
+        <p class="chico tenue">
+          Aquí solo defines hasta cuándo dura el reto. La dificultad y los puntos los determina la
+          duración.
+        </p>
+        <ul class="reglas">
+          <li>
+            <span class="insignia insignia--lit">Fácil</span>
+            <span>1 a 50 días</span>
+          </li>
+          <li>
+            <span class="insignia insignia--oro">Medio</span>
+            <span>51 a 150 días</span>
+          </li>
+          <li>
+            <span class="insignia insignia--rojo">Difícil</span>
+            <span>151 a 300 días</span>
+          </li>
+        </ul>
+        <p class="chico tenue">
+          Cada evidencia aprobada suma. Al cubrir todos los días se pagan los
+          <strong>100%</strong> al instante; si el reto cierra incompleto se abona el
+          <strong>25%</strong>, el <strong>50%</strong> o el <strong>75%</strong> al cerrar.
+        </p>
+      </section>
+
+      <section class="tarjeta tarjeta--hundida">
+        <h3>Qué pasa después</h3>
+        <ol class="pasos">
+          <li>Entra en <strong>Pendiente de aprobación</strong>.</li>
+          <li>Un supervisor lo revisa y lo activa.</li>
+          <li>Aparece en el feed del campus.</li>
+        </ol>
+      </section>
+    </aside>
+  </div>
+</div>

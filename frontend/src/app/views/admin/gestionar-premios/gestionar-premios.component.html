@@ -1,0 +1,265 @@
+<div class="apilar">
+  <div class="seccion-titulo">
+    <div>
+      <h1>Gestionar premios</h1>
+      <p class="tenue chico">
+        Catálogo que se canjea con los puntos acumulados, incluidos los dados de baja.
+      </p>
+    </div>
+    <button type="button" class="btn btn--primario btn--chico" (click)="abrirAlta()">
+      Nuevo premio
+    </button>
+  </div>
+
+  <app-alerta [mensaje]="error()" tipo="error" />
+  <app-alerta [mensaje]="exito()" tipo="ok" />
+
+  <section class="tarjeta tarjeta--plana">
+    <form class="filtros" (ngSubmit)="buscar()">
+      <div class="campo">
+        <label for="q">Buscar</label>
+        <input
+          id="q"
+          name="busqueda"
+          class="entrada"
+          placeholder="Nombre o descripción"
+          [(ngModel)]="busqueda"
+        />
+      </div>
+
+      <div class="filtros__botones">
+        <button type="submit" class="btn btn--primario">Buscar</button>
+        <button type="button" class="btn btn--fantasma" (click)="limpiar()">Limpiar</button>
+      </div>
+    </form>
+  </section>
+
+  @if (cargando()) {
+    <app-loader texto="Cargando premios..." />
+  } @else if (items().length === 0) {
+    <div class="vacio">
+      <span class="vacio__icono" aria-hidden="true">?</span>
+      <p><strong>No hay premios</strong></p>
+      <p class="chico">Creá el primero con el botón de arriba.</p>
+    </div>
+  } @else {
+    <div class="tabla-envoltorio">
+      <table class="tabla tabla--tarjetas">
+        <thead>
+          <tr>
+            <th>Premio</th>
+            <th>Imagen</th>
+            <th>Estado</th>
+            <th>Descripción</th>
+            <th>Puntos</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (premio of items(); track premio.idPremio) {
+            <tr>
+              <td data-label="Premio">
+                <strong>{{ premio.nombrePremio }}</strong>
+              </td>
+              <td data-label="Imagen">
+                @if (premio.imagenPremio) {
+                  <img
+                    [src]="premio.imagenPremio | imagenUrl"
+                    alt=""
+                    class="tabla-imagen"
+                    appImagenRota
+                  />
+                } @else {
+                  <span class="tenue">Sin imagen</span>
+                }
+              </td>
+              <td data-label="Estado"><app-insignia [valor]="premio.estado" /></td>
+              <td data-label="Descripción" class="tenue">{{ premio.descripcionPremio }}</td>
+              <td data-label="Puntos">
+                <span class="insignia insignia--oro">{{ premio.puntosPremio }} pts</span>
+              </td>
+              <td data-label="Acciones">
+                <div class="acciones">
+                  <button
+                    type="button"
+                    class="btn btn--cian btn--chico"
+                    (click)="abrirEdicion(premio)"
+                  >
+                    Editar
+                  </button>
+                  @if (premio.estado === EstadoPremio.Desactivo) {
+                    <button
+                      type="button"
+                      class="btn btn--primario btn--chico"
+                      [disabled]="procesando()"
+                      (click)="restaurar(premio)"
+                    >
+                      Restaurar
+                    </button>
+                  } @else {
+                    <button
+                      type="button"
+                      class="btn btn--peligro btn--chico"
+                      [disabled]="procesando()"
+                      (click)="porEliminar.set(premio)"
+                    >
+                      Eliminar
+                    </button>
+                  }
+                </div>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+
+    <app-paginacion
+      [pagina]="pagina"
+      [limite]="limite"
+      [total]="total()"
+      (cambio)="cambiarPagina($event)"
+    />
+  }
+
+  @if (formAbierto()) {
+    <div class="modal-fondo" (click)="cerrarFormulario()">
+      <div
+        class="modal modal--ancho"
+        role="dialog"
+        aria-modal="true"
+        [attr.aria-label]="editando ? 'Editar premio' : 'Nuevo premio'"
+        (click)="$event.stopPropagation()"
+      >
+        <h3>{{ editando ? 'Editar premio' : 'Nuevo premio' }}</h3>
+
+        <div class="campo">
+          <label for="p-nombre">Nombre</label>
+          <input
+            id="p-nombre"
+            name="nombrePremio"
+            class="entrada"
+            maxlength="150"
+            [(ngModel)]="form.nombrePremio"
+          />
+        </div>
+
+        <div class="campo">
+          <label for="p-desc">Descripción</label>
+          <textarea
+            id="p-desc"
+            name="descripcionPremio"
+            class="entrada"
+            rows="3"
+            maxlength="2000"
+            [(ngModel)]="form.descripcionPremio"
+          ></textarea>
+        </div>
+
+        <div class="campo">
+          <label for="p-puntos">Puntos del premio</label>
+          <input
+            id="p-puntos"
+            name="puntosPremio"
+            type="number"
+            class="entrada"
+            min="1"
+            [(ngModel)]="form.puntosPremio"
+          />
+        </div>
+
+        <div class="campo">
+          <label for="p-imagen">Imagen del premio</label>
+          <div class="fila" style="gap: 0.5rem; align-items: center">
+            <input
+              type="file"
+              id="p-imagen"
+              accept=".jpg,.jpeg,.png,.webp"
+              (change)="onImagenSeleccionada($event)"
+              [disabled]="subiendoImagen()"
+              style="flex: 1"
+            />
+            @if (imagenSeleccionada) {
+              <span class="chico tenue"
+                >{{ imagenSeleccionada.name }} ({{
+                  (imagenSeleccionada.size / 1024).toFixed(1)
+                }}
+                KB)</span
+              >
+              <button type="button" class="btn btn--fantasma btn--chico" (click)="quitarImagen()">
+                Quitar
+              </button>
+            }
+          </div>
+        </div>
+
+        @if (vistaPreviaImagen) {
+          <div class="campo">
+            <label>Vista previa</label>
+            <img
+              [src]="vistaPreviaImagen"
+              alt="Vista previa"
+              class="vista-previa-imagen"
+              appImagenRota
+            />
+          </div>
+        }
+
+        @if (editando?.imagenPremio && !imagenSeleccionada) {
+          <div class="campo">
+            <label>Imagen actual</label>
+            <div class="fila" style="gap: 0.5rem; align-items: center">
+              <img
+                [src]="editando.imagenPremio | imagenUrl"
+                alt=""
+                class="tabla-imagen"
+                appImagenRota
+              />
+              <button
+                type="button"
+                class="btn btn--peligro btn--chico"
+                (click)="eliminarImagenPremio(editando!)"
+              >
+                Eliminar imagen
+              </button>
+            </div>
+          </div>
+        }
+
+        <div class="fila fila--fin">
+          <button type="button" class="btn btn--fantasma" (click)="cerrarFormulario()">
+            Cancelar
+          </button>
+          <button
+            type="button"
+            class="btn btn--primario"
+            [disabled]="procesando() || subiendoImagen()"
+            (click)="guardar()"
+          >
+            @if (procesando()) {
+              Guardando...
+            } @else if (subiendoImagen()) {
+              Subiendo imagen...
+            } @else {
+              Guardar
+            }
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+
+  @if (porEliminar(); as premio) {
+    <app-modal-confirmacion
+      titulo="Desactivar premio"
+      [mensaje]="
+        'Se dará de baja «' +
+        premio.nombrePremio +
+        '» del catálogo. Los canjes ya realizados se conservan y se puede restaurar.'
+      "
+      textoConfirmar="Desactivar"
+      (confirmar)="confirmarEliminacion()"
+      (cancelar)="cancelarEliminacion()"
+    />
+  }
+</div>

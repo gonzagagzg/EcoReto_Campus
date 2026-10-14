@@ -1,0 +1,351 @@
+<div class="apilar">
+  <div class="seccion-titulo">
+    <div>
+      <h1>Gestionar retos</h1>
+      <p class="tenue chico">
+        Todos los retos del campus, incluidos los pendientes, bloqueados y dados de baja.
+      </p>
+    </div>
+    <a class="btn btn--primario btn--chico" routerLink="/retos/crear">Crear reto</a>
+  </div>
+
+  <app-alerta [mensaje]="error()" tipo="error" />
+  <app-alerta [mensaje]="exito()" tipo="ok" />
+
+  <section class="tarjeta tarjeta--plana">
+    <form class="filtros" (ngSubmit)="buscar()">
+      <div class="campo">
+        <label for="q">Buscar</label>
+        <input
+          id="q"
+          name="busqueda"
+          class="entrada"
+          placeholder="Nombre o descripción"
+          [(ngModel)]="busqueda"
+        />
+      </div>
+
+      <div class="campo">
+        <label for="estado">Estado</label>
+        <select id="estado" name="estado" class="entrada" [(ngModel)]="estado">
+          <option value="">Todos</option>
+          @for (opcion of estados; track opcion) {
+            <option [value]="opcion">{{ opcion }}</option>
+          }
+        </select>
+      </div>
+
+      <div class="campo">
+        <label for="dificultad">Dificultad</label>
+        <select id="dificultad" name="dificultad" class="entrada" [(ngModel)]="dificultad">
+          <option value="">Todas</option>
+          @for (opcion of dificultades; track opcion) {
+            <option [value]="opcion">{{ opcion }}</option>
+          }
+        </select>
+      </div>
+
+      <div class="filtros__botones">
+        <button type="submit" class="btn btn--primario">Buscar</button>
+        <button type="button" class="btn btn--fantasma" (click)="limpiar()">Limpiar</button>
+      </div>
+    </form>
+  </section>
+
+  @if (cargando()) {
+    <app-loader texto="Cargando retos..." />
+  } @else if (items().length === 0) {
+    <div class="vacio">
+      <span class="vacio__icono" aria-hidden="true">?</span>
+      <p><strong>No hay retos con esos filtros</strong></p>
+      <p class="chico">Probá ampliando la búsqueda.</p>
+      <button type="button" class="btn btn--secundario" (click)="limpiar()">Limpiar filtros</button>
+    </div>
+  } @else {
+    <div class="tabla-envoltorio">
+      <table class="tabla tabla--tarjetas">
+        <thead>
+          <tr>
+            <th>Reto</th>
+            <th>Estado</th>
+            <th>Dificultad</th>
+            <th>Puntos</th>
+            <th>Límite</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (reto of items(); track reto.idReto) {
+            <tr>
+              <td data-label="Reto">
+                <strong>{{ reto.nombreReto }}</strong>
+                <div class="chico tenue">{{ reto.categoria }}</div>
+              </td>
+              <td data-label="Estado"><app-insignia [valor]="reto.estadoReto" /></td>
+              <td data-label="Dificultad"><app-insignia [valor]="reto.dificultad" /></td>
+              <td data-label="Puntos">
+                <span class="insignia insignia--oro">{{ reto.puntosCompletado }} pts</span>
+              </td>
+              <td data-label="Límite" class="tenue">{{ fecha(reto.fechaLimite) }}</td>
+              <td data-label="Acciones">
+                <div class="acciones">
+                  @if (puedeSupervisar(reto)) {
+                    <button
+                      type="button"
+                      class="btn btn--primario btn--chico"
+                      [disabled]="procesando()"
+                      (click)="supervisar(reto)"
+                    >
+                      Supervisar
+                    </button>
+                  }
+                  <button
+                    type="button"
+                    class="btn btn--cian btn--chico"
+                    (click)="abrirEdicion(reto)"
+                  >
+                    Editar
+                  </button>
+                  @if (reto.estadoReto === EstadoReto.Desactivado) {
+                    <button
+                      type="button"
+                      class="btn btn--primario btn--chico"
+                      [disabled]="procesando()"
+                      (click)="restaurar(reto)"
+                    >
+                      Restaurar
+                    </button>
+                  } @else {
+                    <button
+                      type="button"
+                      class="btn btn--peligro btn--chico"
+                      [disabled]="procesando()"
+                      (click)="porEliminar.set(reto)"
+                    >
+                      Eliminar
+                    </button>
+                  }
+                </div>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+
+    <app-paginacion
+      [pagina]="pagina"
+      [limite]="limite"
+      [total]="total()"
+      (cambio)="cambiarPagina($event)"
+    />
+  }
+
+  @if (editando(); as reto) {
+    <div class="modal-fondo" (click)="cerrarEdicion()">
+      <div
+        class="modal modal--ancho"
+        role="dialog"
+        aria-modal="true"
+        [attr.aria-label]="'Editar ' + reto.nombreReto"
+        (click)="$event.stopPropagation()"
+      >
+        <h3>Editar reto</h3>
+        <p class="chico tenue">
+          Al cambiar la fecha límite el backend recalcula la dificultad y los puntos.
+        </p>
+
+        <div class="campo">
+          <label for="e-nombre">Nombre</label>
+          <input
+            id="e-nombre"
+            name="nombreReto"
+            class="entrada"
+            maxlength="150"
+            [(ngModel)]="form.nombreReto"
+          />
+        </div>
+
+        <div class="campo">
+          <label for="e-desc">Descripción</label>
+          <textarea
+            id="e-desc"
+            name="descripcionReto"
+            class="entrada"
+            rows="4"
+            maxlength="5000"
+            [(ngModel)]="form.descripcionReto"
+          ></textarea>
+        </div>
+
+        <div class="campo">
+          <label>Imagen del reto</label>
+          @if (vistaPreviaImagen) {
+            <div class="imagen-previa-contenedor">
+              <img
+                [src]="
+                  vistaPreviaImagen.startsWith('blob:')
+                    ? vistaPreviaImagen
+                    : (vistaPreviaImagen | imagenUrl)
+                "
+                alt="Vista previa de la imagen del reto"
+                class="imagen-previa"
+                appImagenRota
+              />
+              <div class="imagen-acciones">
+                <button
+                  type="button"
+                  class="btn btn--fantasma btn--chico"
+                  (click)="quitarImagen()"
+                  [disabled]="subiendoImagen()"
+                >
+                  Quitar imagen
+                </button>
+                @if (reto.imagenReto && !imagenSeleccionada) {
+                  <button
+                    type="button"
+                    class="btn btn--peligro btn--chico"
+                    (click)="eliminarImagenReto(reto)"
+                    [disabled]="procesando()"
+                  >
+                    Eliminar del servidor
+                  </button>
+                }
+              </div>
+            </div>
+          }
+          <input
+            type="file"
+            id="e-imagen"
+            name="imagen"
+            class="entrada"
+            accept="image/jpeg,image/png,image/webp"
+            (change)="onImagenSeleccionada($event)"
+            [disabled]="subiendoImagen()"
+            #imagenInput
+          />
+          @if (imagenSeleccionada) {
+            <p class="chico tenue">
+              Imagen seleccionada: {{ imagenSeleccionada.name }} ({{
+                (imagenSeleccionada.size / 1024).toFixed(1)
+              }}
+              KB)
+            </p>
+          }
+          @if (!vistaPreviaImagen && !imagenSeleccionada) {
+            <p class="chico tenue">Sin imagen. Seleccioná una para añadirla.</p>
+          }
+        </div>
+
+        <div class="formulario-cuadricula">
+          <div class="campo">
+            <label for="e-cat">Categoría</label>
+            <select id="e-cat" name="categoria" class="entrada" [(ngModel)]="form.categoria">
+              @for (cat of categorias; track cat) {
+                <option [value]="cat">{{ cat }}</option>
+              }
+            </select>
+          </div>
+
+          <div class="campo">
+            <label for="e-fecha">Fecha límite</label>
+            <input
+              id="e-fecha"
+              name="fechaLimite"
+              type="date"
+              class="entrada"
+              [(ngModel)]="form.fechaLimite"
+            />
+          </div>
+        </div>
+
+        <div class="fila fila--fin">
+          <button type="button" class="btn btn--fantasma" (click)="cerrarEdicion()">
+            Cancelar
+          </button>
+          <button
+            type="button"
+            class="btn btn--primario"
+            [disabled]="procesando() || subiendoImagen()"
+            (click)="guardarEdicion()"
+          >
+            {{
+              subiendoImagen()
+                ? 'Subiendo imagen...'
+                : procesando()
+                  ? 'Guardando...'
+                  : 'Guardar cambios'
+            }}
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+
+  @if (porEliminar(); as reto) {
+    <app-modal-confirmacion
+      titulo="Desactivar reto"
+      [mensaje]="
+        'Se dará de baja «' +
+        reto.nombreReto +
+        '»: dejará de aparecer en el feed. Sus participaciones y evidencias se conservan y se puede restaurar.'
+      "
+      textoConfirmar="Desactivar"
+      (confirmar)="confirmarEliminacion()"
+      (cancelar)="cancelarEliminacion()"
+    />
+  }
+
+  @if (porSupervisar(); as reto) {
+    <div class="modal-fondo" (click)="cancelarSupervision()">
+      <div
+        class="modal modal--ancho"
+        role="dialog"
+        aria-modal="true"
+        [attr.aria-label]="'Supervisar ' + reto.nombreReto"
+        (click)="$event.stopPropagation()"
+      >
+        <h3>Supervisar reto</h3>
+        <p class="chico tenue">{{ reto.nombreReto }} · {{ reto.categoria }}</p>
+
+        <div class="fila">
+          <app-insignia [valor]="reto.estadoReto" />
+          <app-insignia [valor]="reto.dificultad" />
+          <span class="insignia insignia--oro">{{ reto.puntosCompletado }} pts</span>
+          <span class="chico tenue">Hasta {{ fecha(reto.fechaLimite) }}</span>
+        </div>
+
+        <p class="chico">Elige el estado en que queda el reto:</p>
+
+        <div class="decisiones">
+          @for (opcion of decisiones; track opcion.valor) {
+            <label class="decision" [class.decision--activa]="decision === opcion.valor">
+              <input type="radio" name="decision" [value]="opcion.valor" [(ngModel)]="decision" />
+              <span class="decision__titulo">
+                {{ opcion.titulo }}
+                @if (opcion.valor === reto.estadoReto) {
+                  <span class="chico tenue">(actual)</span>
+                }
+              </span>
+              <span class="decision__texto">{{ opcion.texto }}</span>
+            </label>
+          }
+        </div>
+
+        <div class="fila fila--fin">
+          <button type="button" class="btn btn--fantasma" (click)="cancelarSupervision()">
+            Cancelar
+          </button>
+          <button
+            type="button"
+            class="btn btn--primario"
+            [disabled]="procesando() || decision === reto.estadoReto"
+            (click)="confirmarSupervision()"
+          >
+            {{ procesando() ? 'Aplicando...' : 'Aplicar decisión' }}
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+</div>

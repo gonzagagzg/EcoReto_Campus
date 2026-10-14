@@ -8,6 +8,7 @@ export interface FiltrosParticipacion {
   estadoParticipacion?: EstadoEvaluacion;
   idUsuario?: number;
   idRetosParticipantes?: number;
+  busqueda?: string;
   skip?: number;
   take?: number;
 }
@@ -24,6 +25,20 @@ export interface ParticipacionConReto {
   fechaRevision: Date | null;
 }
 
+export interface ParticipacionConDetalle {
+  idParticipacion: number;
+  idRetosParticipantes: number;
+  idUsuario: number;
+  imagenEvidencia: string;
+  estadoParticipacion: EstadoEvaluacion;
+  idUsuarioRevisor: number | null;
+  aliasRevisor: string | null;
+  observacionRevision: string | null;
+  respuestaEvidencia: string | null;
+  fechaRevision: Date | null;
+  nombreReto: string;
+}
+
 export interface PuntosParticipacion {
   idParticipacion: number;
   idReto: number;
@@ -32,6 +47,8 @@ export interface PuntosParticipacion {
   estado: EstadoEvaluacion;
   diasEstimados: number;
   diasCumplidos: number | null;
+  estadoReto: EstadoReto;
+  fechaLimite: Date;
 }
 
 @Injectable()
@@ -51,6 +68,25 @@ export class ParticipacionesDao {
       where: { idParticipacion },
       relations: { retoParticipante: { reto: true } },
     });
+  }
+
+  /**
+   * Verifica si el usuario ya subió evidencia hoy para este reto
+   * que NO esté Negada ni Bloqueada (solo bloquea si está Enviado o Aprobado).
+   * Usa CURRENT_DATE de PostgreSQL para evitar problemas de zona horaria.
+   * Une con retos_participantes para filtrar por idReto (no por inscripción).
+   */
+  async existeEvidenciaHoy(idReto: number, idUsuario: number): Promise<boolean> {
+    const existe = await this.participacionRepo
+      .createQueryBuilder('p')
+      .innerJoin('p.retoParticipante', 'rp')
+      .where('rp.idReto = :idReto', { idReto })
+      .andWhere('p.idUsuario = :idUsuario', { idUsuario })
+      .andWhere('p.fecha_creacion::date = CURRENT_DATE')
+      .andWhere("p.estado_participacion NOT IN ('Negado', 'Bloqueado')")
+      .getExists();
+
+    return existe;
   }
 
   async actualizar(
@@ -87,12 +123,117 @@ export class ParticipacionesDao {
       });
     }
 
+    if (filtros.busqueda) {
+      query
+        .innerJoin('participacion.usuario', 'usuario')
+        .andWhere(
+          '(usuario.alias ILIKE :busqueda OR usuario.nombre ILIKE :busqueda OR usuario.apellido ILIKE :busqueda)',
+          { busqueda: `%${filtros.busqueda}%` },
+        );
+    }
+
     query
       .orderBy('participacion.id_participacion', 'DESC')
       .skip(filtros.skip ?? 0)
       .take(filtros.take ?? 20);
 
     const [items, total] = await query.getManyAndCount();
+
+    return { items, total };
+  }
+
+  async listarConDetalle(filtros: FiltrosParticipacion): Promise<{ items: ParticipacionConDetalle[]; total: number }> {
+    const query = this.participacionRepo
+      .createQueryBuilder('participacion')
+      .innerJoin(
+        'participacion.retoParticipante',
+        'participante',
+        'participante.id_retos_participantes = participacion.id_retos_participantes',
+      )
+      .innerJoin('participante.reto', 'reto', 'reto.id_reto = participante.id_reto')
+      .select([
+        'participacion.id_participacion AS "idParticipacion"',
+        'participacion.id_retos_participantes AS "idRetosParticipantes"',
+        'participacion.id_usuario AS "idUsuario"',
+        'participacion.imagen_evidencia AS "imagenEvidencia"',
+        'participacion.estado_participacion AS "estadoParticipacion"',
+        'participacion.id_usuario_revisor AS "idUsuarioRevisor"',
+        'participacion.observacion_revision AS "observacionRevision"',
+        'participacion.respuesta_evidencia AS "respuestaEvidencia"',
+        'participacion.fecha_revision AS "fechaRevision"',
+        'reto.nombre_reto AS "nombreReto"',
+      ]);
+
+    if (filtros.estadoParticipacion) {
+      query.andWhere('participacion.estado_participacion = :estado', {
+        estado: filtros.estadoParticipacion,
+      });
+    }
+
+    if (filtros.idUsuario) {
+      query.andWhere('participacion.id_usuario = :idUsuario', { idUsuario: filtros.idUsuario });
+    }
+
+    if (filtros.idRetosParticipantes) {
+      query.andWhere('participacion.id_retos_participantes = :idRetosParticipantes', {
+        idRetosParticipantes: filtros.idRetosParticipantes,
+      });
+    }
+
+    if (filtros.busqueda) {
+      query
+        .innerJoin('participacion.usuario', 'usuario')
+        .andWhere(
+          '(usuario.alias ILIKE :busqueda OR usuario.nombre ILIKE :busqueda OR usuario.apellido ILIKE :busqueda)',
+          { busqueda: `%${filtros.busqueda}%` },
+        );
+    }
+
+    query
+      .orderBy('participacion.id_participacion', 'DESC')
+      .skip(filtros.skip ?? 0)
+      .take(filtros.take ?? 20);
+
+    const items = await query.getRawMany<ParticipacionConDetalle>();
+
+    // Fetch revisor aliases separately
+    const idsRevisor = [...new Set(items.map((i) => i.idUsuarioRevisor).filter((id): id is number => id !== null))];
+    if (idsRevisor.length > 0) {
+      const revisores = await this.participacionRepo.manager
+        .getRepository('Usuario')
+        .createQueryBuilder('usuario')
+        .select(['usuario.id_usuario AS "idUsuario"', 'usuario.alias AS "alias"'])
+        .where('usuario.id_usuario IN (:...ids)', { ids: idsRevisor })
+        .getRawMany<{ idUsuario: number; alias: string }>();
+
+      const aliasMap = new Map(revisores.map((r) => [r.idUsuario, r.alias]));
+      items.forEach((item) => {
+        if (item.idUsuarioRevisor) {
+          item.aliasRevisor = aliasMap.get(item.idUsuarioRevisor) ?? null;
+        }
+      });
+    } else {
+      items.forEach((item) => {
+        item.aliasRevisor = null;
+      });
+    }
+
+    // Count using the same query builder logic
+    const countQuery = this.participacionRepo.createQueryBuilder('participacion');
+    if (filtros.estadoParticipacion) {
+      countQuery.andWhere('participacion.estado_participacion = :estado', {
+        estado: filtros.estadoParticipacion,
+      });
+    }
+    if (filtros.idUsuario) {
+      countQuery.andWhere('participacion.id_usuario = :idUsuario', { idUsuario: filtros.idUsuario });
+    }
+    if (filtros.idRetosParticipantes) {
+      countQuery.andWhere('participacion.id_retos_participantes = :idRetosParticipantes', {
+        idRetosParticipantes: filtros.idRetosParticipantes,
+      });
+    }
+    const total = await countQuery.getCount();
 
     return { items, total };
   }
@@ -137,11 +278,13 @@ export class ParticipacionesDao {
     idUsuarioRevisor: number,
     observacionRevision?: string,
     diasCumplidos?: number | null,
+    respuestaEvidencia?: string,
   ): Promise<Participacion> {
     await this.participacionRepo.update(idParticipacion, {
       estadoParticipacion,
       idUsuarioRevisor,
       observacionRevision: observacionRevision ?? null,
+      respuestaEvidencia: respuestaEvidencia ?? null,
       fechaRevision: new Date(),
       diasCumplidos: diasCumplidos ?? null,
     });
@@ -166,6 +309,12 @@ export class ParticipacionesDao {
     return filas.map((fila) => ({ estado: fila.estado, total: Number(fila.total) }));
   }
 
+  /**
+   * Trae todas las participaciones del usuario con los datos del reto para
+   * que ProgresoPuntosService agrupe por reto las evidencias aprobadas y
+   * aplique el tramo de pago (100% al completar todos los dias requeridos,
+   * 25% / 50% / 75% al cerrar el reto incompleto).
+   */
   async obtenerPuntosPorUsuario(idUsuario: number): Promise<PuntosParticipacion[]> {
     return this.participacionRepo
       .createQueryBuilder('participacion')
@@ -183,13 +332,10 @@ export class ParticipacionesDao {
         'participacion.estado_participacion AS "estado"',
         'GREATEST(1, CEIL(EXTRACT(EPOCH FROM (reto.fecha_limite - reto.fecha_creacion)) / 86400)) AS "diasEstimados"',
         'participacion.dias_cumplidos AS "diasCumplidos"',
+        'reto.estado_reto AS "estadoReto"',
+        'reto.fecha_limite AS "fechaLimite"',
       ])
       .where('participacion.id_usuario = :idUsuario', { idUsuario })
-      // Los puntos se liquidan al cerrar el reto (finalizado por el cleanup o ya vencido).
-      .andWhere('(reto.estado_reto = :finalizado OR reto.fecha_limite <= :ahora)', {
-        finalizado: EstadoReto.Finalizado,
-        ahora: new Date(),
-      })
       .getRawMany<PuntosParticipacion>();
   }
 
@@ -216,6 +362,27 @@ export class ParticipacionesDao {
       .andWhere('participacion.estado_participacion = :estado', {
         estado: EstadoEvaluacion.Aprobado,
       })
+      .orderBy('participacion.id_participacion', 'DESC')
       .getRawMany();
+  }
+
+  /**
+   * Cuenta las evidencias aprobadas de un usuario en un reto específico.
+   * Cuenta TODAS las participaciones del usuario en ese reto (puede haber varias inscripciones).
+   */
+  async contarAprobadasPorRetoYUsuario(idReto: number, idUsuario: number): Promise<number> {
+    return this.participacionRepo
+      .createQueryBuilder('participacion')
+      .innerJoin(
+        'participacion.retoParticipante',
+        'participante',
+        'participante.id_retos_participantes = participacion.id_retos_participantes',
+      )
+      .where('participante.id_reto = :idReto', { idReto })
+      .andWhere('participacion.id_usuario = :idUsuario', { idUsuario })
+      .andWhere('participacion.estado_participacion = :estado', {
+        estado: EstadoEvaluacion.Aprobado,
+      })
+      .getCount();
   }
 }

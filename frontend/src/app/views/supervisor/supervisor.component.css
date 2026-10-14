@@ -1,0 +1,152 @@
+.pestanas {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  align-items: center;
+  border-bottom: var(--grosor) solid var(--borde-fuerte);
+  padding-bottom: 0.8rem;
+}
+
+.pestanas button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  border: var(--grosor) solid var(--negro);
+  background: var(--blanco);
+  border-radius: 999px;
+  padding: 0.4rem 0.95rem;
+  font-weight: 700;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition:
+    background var(--veloz),
+    color var(--veloz);
+}
+
+.pestanas button:hover {
+  background: var(--verde-suave);
+}
+
+.pestanas button.activa {
+  background: var(--negro);
+  color: var(--blanco);
+}
+
+.contador {
+  background: var(--verde);
+  color: var(--negro);
+  border-radius: 999px;
+  min-width: 22px;
+  text-align: center;
+  padding: 0 0.35rem;
+  font-size: 0.75rem;
+  font-weight: 900;
+}
+
+.cola {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.cola h3,
+.cola p {
+  margin: 0;
+}
+
+.cola h3 {
+  font-size: 1rem;
+}
+
+.evidencia-caja {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 220px;
+  background: var(--superficie-2);
+  border: var(--grosor) dashed var(--borde-fuerte);
+  border-radius: var(--radio-chico);
+  overflow: hidden;
+}
+
+.evidencia-caja__aviso {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--texto-tenue);
+}
+
+.evidencia-foto {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  background: var(--blanco);
+  border: var(--grosor) solid var(--negro);
+  border-radius: var(--radio-chico);
+}
+
+.revision {
+  border-top: 1px dashed var(--borde-fuerte);
+  padding-top: 0.85rem;
+}
+
+@media (max-width: 640px) {
+  .pestanas {
+    gap: 0.35rem;
+    padding-bottom: 0.5rem;
+  }
+
+  .pestanas button {
+    padding: 0.35rem 0.75rem;
+    font-size: 0.8rem;
+  }
+
+  .contador {
+    min-width: 20px;
+    font-size: 0.7rem;
+  }
+
+  .evidencia-caja {
+    height: 180px;
+  }
+
+  .tabla-envoltorio {
+    border-radius: var(--radio);
+  }
+
+  .tabla th,
+  .tabla td {
+    padding: 0.5rem 0.6rem;
+    font-size: 0.75rem;
+  }
+
+  .tabla .acciones {
+    gap: 0.25rem;
+  }
+
+  .tabla .btn--chico {
+    padding: 0.2rem 0.45rem;
+    font-size: 0.65rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .pestanas button {
+    padding: 0.3rem 0.6rem;
+    font-size: 0.75rem;
+  }
+
+  .pestanas button span:not(.contador) {
+    display: none;
+  }
+
+  .pestanas button .contador {
+    margin-left: 0;
+  }
+
+  .evidencia-caja {
+    height: 150px;
+  }
+}

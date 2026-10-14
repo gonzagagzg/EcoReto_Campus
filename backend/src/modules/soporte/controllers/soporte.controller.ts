@@ -77,7 +77,11 @@ export class SoporteController {
 
   @Post(':id/responder')
   @Roles(Rol.Administrador)
-  responder(@Param('id', ParseIntPipe) id: number, @Body() dto: ResponderSoporteDto) {
-    return this.soporteService.responder(id, dto);
+  responder(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() dto: ResponderSoporteDto,
+    @CurrentUser('idUsuario') idUsuario: number,
+  ) {
+    return this.soporteService.responder(id, dto, idUsuario);
   }
 }
