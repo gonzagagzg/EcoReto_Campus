@@ -1,9 +1,10 @@
-import { Module, ValidationPipe } from '@nestjs/common';
+import { BadRequestException, Module, ValidationPipe, type ValidationError } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { APP_FILTER, APP_PIPE } from '@nestjs/core';
 import { ScheduleModule } from '@nestjs/schedule';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AllExceptionsFilter } from './common/filters/all-exceptions.filter';
+import { mensajesDeValidacion } from './common/validation/mensajes-validacion';
 import { databaseConfig, iaConfig, jwtConfig, validateEnv } from './config';
 import type { DatabaseEnv } from './config';
 import { AdminModule } from './modules/admin/admin.module';
@@ -63,6 +64,10 @@ import { AppService } from './app.service';
         whitelist: true,
         forbidNonWhitelisted: true,
         transform: true,
+        // Traduce al espanol los mensajes por defecto de class-validator
+        // ("contrasena must be longer than or equal to 8 characters").
+        exceptionFactory: (errores: ValidationError[]) =>
+          new BadRequestException(mensajesDeValidacion(errores)),
       }),
     },
     { provide: APP_FILTER, useClass: AllExceptionsFilter },

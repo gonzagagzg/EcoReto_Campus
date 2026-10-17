@@ -39,9 +39,16 @@ const POR_ESTADO: Record<number, string> = {
   429: 'Demasiadas peticiones. Espera unos segundos e inténtalo de nuevo.',
 };
 
-/** true si el texto suena a un fallo de red (red caida, CORS, DNS, timeout). */
-function esFalloDeRed(texto: string): boolean {
-  return ERRORES_DE_RED.test(texto);
+/**
+ * true si el texto suena a un fallo de red (red caida, CORS, DNS, timeout).
+ *
+ * Solo se aplica sobre textos reales (cuerpo del error o message de un Error
+ * normal); NUNCA sobre `HttpErrorResponse.message`, porque Angular lo arma
+ * siempre como `Http failure response for <url>: <status>`, lo que haria
+ * parecer caida de red a cualquier respuesta del backend (401, 400...).
+ */
+function esFalloDeRed(texto: unknown): boolean {
+  return typeof texto === 'string' && ERRORES_DE_RED.test(texto);
 }
 
 /**
@@ -81,7 +88,11 @@ function mensajeDelBackend(error: HttpErrorResponse): string {
 export function mensajeDeError(error: unknown): string {
   if (error instanceof HttpErrorResponse) {
     // 1. Red caida: el status 0 cubre CORS roto, servidor apagado y DNS.
-    if (error.status === 0 || esFalloDeRed(error.message)) {
+    //    NO se revisa `error.message` aqui: Angular lo escribe como
+    //    "Http failure response for ..." en TODA respuesta HTTP, lo que
+    //    provocaba que un 401 (contraseña incorrecta) o un 400 (datos
+    //    invalidos) se mostraran como "No se pudo conectar con el servidor".
+    if (error.status === 0) {
       return FALLO_CONEXION;
     }
 
